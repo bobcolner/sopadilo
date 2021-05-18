@@ -1,0 +1,15 @@
+# conda env create --force -f conda_mlfinlab.yaml
+name: mlfinlab
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python = 3.8
+  - mkl
+  - mamba
+  - pyarrow >= 2.0
+  - jupyterlab
+  - pip
+  - pip:
+    - mlfinlab
+    - portfoliolab

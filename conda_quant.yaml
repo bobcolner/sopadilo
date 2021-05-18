@@ -1,0 +1,104 @@
+# conda/mamba env create --force -f conda_quant.yaml
+name: quant
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python = 3.8
+  # - xeus-python
+  - mkl
+  - mamba
+  # - nomkl
+  # - openblas
+  - numpy
+  - scipy
+  - scikit-learn
+  - statsmodels
+  # - pingouin
+  # - fastcluster
+  # - pyclustering
+  # - pycaret
+  - pyarrow >= 2.0
+  - pandas >= 1.1
+  - pandas_market_calendars
+  # trading_calendars
+  - ipython
+  # - jedi == 0.17.2
+  - ipdb
+  - jupyterlab > 3.0
+  - jupyterlab-git
+  - nbdime
+  - matplotlib
+  - bokeh
+  - dask
+  - distributed
+  # - modin
+  # - pandarallel
+  # - swifter
+  - prefect[viz, gcp, aws]
+  - graphviz
+  - joblib
+  - tenacity
+  - psutil
+  - tqdm
+  - requests
+  - trio
+  - fsspec
+  - s3fs
+  - boto3
+  - google-api-python-client
+  - pip
+  - pip:
+    - trio-websocket
+    # - pandas-ta
+    # - finta
+    # - fracdiff
+    - pandas-bokeh
+    # - finplot
+    # - yellowbrick
+    # - ray[tune]
+    # - tune-sklearn
+    - robustats
+    # - skranger
+    # - ppscore
+    # - persist-queue[extra]
+    # - dcor
+    - pdbpp
+    - pdbr
+    - pudb
+    - ipdb
+
+# jupyter labextension install:
+  # @jupyterlab/toc
+  # @krassowski/jupyterlab_go_to_definition
+  # jupyterlab-execute-time
+  # @jupyterlab/shortcutui
+  # nbdime-jupyterlab
+  # qgrid2
+  # @jupyterlab/git
+
+# https://github.com/gregversteeg/gaussianize
+# https://github.com/gregversteeg/LinearCorex
+# https://github.com/gregversteeg/bio_corex
+# https://github.com/gregversteeg/corex_topic
+# https://github.com/hrayrhar/T-CorEx
+# https://github.com/gregversteeg/LinearSieve
+
+# https://github.com/ChongYou/subspace-clustering
+  # - progressbar
+  # - spams
+# https://github.com/padilha/biclustlib
+# https://github.com/KronicDeth/biclustering
+# https://github.com/Biclustering/biclust
+# https://pypi.org/project/SubCMedians
+
+# https://github.com/udellgroup/pyglrm
+
+# pip install -f http://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html h2o
+# brew tap adoptopenjdk/openjdk
+# brew cask install adoptopenjdk14
+
+# profilers
+# filprofiler
+# austin-tui
+# scalene
