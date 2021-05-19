@@ -26,7 +26,6 @@ def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, devations_winle
 
     df['mad_outlier'] = df[col+'_median_diff'] > (df[col+'_median_diff_median'] * k)
     print(df.mad_outlier.value_counts() / len(df))
-
     return df
 
 

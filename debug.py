@@ -1,6 +1,7 @@
 import datetime as dt
 import numpy as np
 
+
 thresh = {
     # meta params
     'symbol': 'VTI',

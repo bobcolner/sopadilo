@@ -8,7 +8,6 @@ def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
     def weighted_mean(values: pd.Series, weights: pd.Series) -> pd.Series:
         return (values * weights).sum() / weights.sum()
 
-
     date = tdf['nyc_dt'].dt.date[0].isoformat()
     dr = pd.date_range(
         start=date+'T09:31:00',
