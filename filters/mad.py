@@ -10,7 +10,7 @@ def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, devations_winle
     if diff == 'simple':
         df[col+'_median_diff'] = abs(df[col] - df[col+'_median'])
     elif diff == 'pct':
-        df[col+'_median_diff'] = abs((df[col] - df[col+'_median']) / df[col+'_median']) * 100  # diff in %pct
+        df[col+'_median_diff'] = abs((df[col] - df[col+'_median']) / df[col+'_median']) * 100
 
     df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(devations_winlen, min_periods=value_winlen, center=False).median()
     if diff == 'simple':
@@ -32,7 +32,7 @@ def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, devations_winle
 
 class MADFilter:
     
-    def __init__(self, value_winlen: int=11, deviation_winlen: int=333, k: int=22) -> float:
+    def __init__(self, value_winlen: int=22, deviation_winlen: int=1111, k: int=11):
         self.value_winlen = value_winlen
         self.deviation_winlen = deviation_winlen
         self.k = k
@@ -44,7 +44,12 @@ class MADFilter:
         self.values.append(next_value)
         self.values = self.values[-self.value_winlen:]  # only keep winlen
         self.value_median = np.median(self.values)
-        self.abs_diff = abs(next_value - self.value_median)
+        self.diff = next_value - self.value_median
+        if diff=='simple':
+            self.abs_diff = abs(self.diff)
+        elif diff=='pct':
+            self.abs_diff = abs(self.diff / self.value_median) * 100
+        
         self.deviations.append(self.abs_diff)
         self.deviations = self.deviations[-self.deviation_winlen:]  # only keep winlen
         self.deviations_median = np.median(self.deviations)
@@ -57,3 +62,5 @@ class MADFilter:
             self.status = 'mad_outlier'    
         else:
             self.status = 'mad_clean'
+
+        return self.value_median

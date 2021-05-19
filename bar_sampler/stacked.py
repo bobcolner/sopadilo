@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 
@@ -25,15 +26,16 @@ def fill_gaps_dates(bar_dates: list, fill_col: str) -> pd.DataFrame:
     for idx, date in enumerate(bar_dates):
         if idx == 0:
             continue
-
+        import pudb; pudb.set_trace()
         try:
             gap_fill = fill_gap(
                 bar_1=bar_dates[idx-1]['bars'][-1],
-                bar_2=bar_dates[idx]['bars'][1],
+                bar_2=bar_dates[idx]['bars'][0],
                 renko_size=bar_dates[idx]['thresh']['renko_size'],
                 fill_col=fill_col,
             )
             bar_dates[idx-1]['bars'] = bar_dates[idx-1]['bars'] + gap_fill
+
         except:
             print(date['date'])
             continue

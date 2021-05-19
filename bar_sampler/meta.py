@@ -24,7 +24,7 @@ def get_symbol_vol_filter(symbol: str, start_date: str,
     return df.dropna().reset_index(drop=True)
 
 
-def get_clean_trades(symbol: str, date: str, freq: str=None) -> pd.DataFrame:
+def get_filter_and_batch_trades(symbol: str, date: str, freq: str=None) -> pd.DataFrame:
     
     # get raw ticks
     tdf = s3_backend.fetch_date_df(symbol, date, tick_type='trades')
@@ -78,7 +78,7 @@ def get_clean_trades(symbol: str, date: str, freq: str=None) -> pd.DataFrame:
 def get_bar_date(thresh: dict, date: str) -> dict:
     
     # get ticks
-    tdf, bdf = get_clean_trades(symbol=thresh['symbol'], date=date, freq='3s')
+    tdf, bdf = get_filter_and_batch_trades(symbol=thresh['symbol'], date=date, freq='3s')
     
     # sample bars
     bar_sampler = sampler.BarSampler(thresh)
@@ -103,6 +103,7 @@ def get_bar_date(thresh: dict, date: str) -> dict:
         'ticks_df': tdf,
         'batches_df': bdf,
         'bars_df': pd.DataFrame(bars),
+        'bars': bars,
         }
     return bar_date
 
