@@ -2,14 +2,14 @@ from os import environ
 
 
 try:
-    LOCAL_PATH = environ['LOCAL_PATH']
+    DATA_LOCAL_PATH = environ['DATA_LOCAL_PATH']
 except:
-    LOCAL_PATH = '/home/juypter/trinity/pandas-polygon/data'
+    DATA_LOCAL_PATH = '/home/juypter/trinity/pandas-polygon/data'
 
 try:
-    S3_PATH = environ['S3_PATH']
+    DATA_S3_PATH = environ['DATA_S3_PATH']
 except:
-    S3_PATH = 'polygon-equities/data'
+    DATA_S3_PATH = 'polygon-equities/data'
 
 try:
     POLYGON_API_KEY = environ['POLYGON_API_KEY']

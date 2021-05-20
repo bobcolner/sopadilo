@@ -1,5 +1,5 @@
 import datetime as dt
-from tqdm import tqdm
+# from tqdm import tqdm
 import pandas as pd
 
 
@@ -17,7 +17,8 @@ def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
         closed=None
         )
     batches = []
-    for i in tqdm(list(range(len(dr)-1))):
+    # for i in tqdm(list(range(len(dr)-1))):
+    for i in list(range(len(dr)-1)):        
         tick_batch = tdf.loc[(tdf['nyc_dt'] >= dr[i]) & (tdf['nyc_dt'] < dr[i+1])]
         batch = {}
         batch['open_at'] = dr[i]

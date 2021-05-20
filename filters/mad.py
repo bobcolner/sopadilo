@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 
 
-def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, devations_winlen: int,
-    k: int, center: bool, diff: str) -> pd.DataFrame:
+def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, deviation_winlen: int,
+    k: int, center: bool=False, diff: str='pct') -> pd.DataFrame:
     
     df = df.copy()
     df[col+'_median'] = df[col].rolling(value_winlen, min_periods=value_winlen, center=center).median()
@@ -12,7 +12,7 @@ def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, devations_winle
     elif diff == 'pct':
         df[col+'_median_diff'] = abs((df[col] - df[col+'_median']) / df[col+'_median']) * 100
 
-    df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(devations_winlen, min_periods=value_winlen, center=False).median()
+    df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(deviation_winlen, min_periods=value_winlen, center=False).median()
     if diff == 'simple':
         sim_min = 0.005
         sim_max = 0.05

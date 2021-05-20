@@ -1,12 +1,12 @@
 import pandas as pd
 from pyarrow.dataset import dataset, field
 from pyarrow._dataset import FileSystemDataset
-from utilities.globals import LOCAL_PATH, S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
+from utilities.globals import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
 
 
 def get_local_dataset(tick_type: str, symbol: str=None) -> FileSystemDataset:
 
-    full_path = LOCAL_PATH + f"/{tick_type}/"
+    full_path = DATA_LOCAL_PATH + f"/{tick_type}/"
     if symbol:
         full_path = full_path + f"symbol={symbol}/"
     ds = dataset(
@@ -26,7 +26,7 @@ def get_s3_dataset(symbol: str, tick_type: str) -> FileSystemDataset:
         endpoint_override=B2_ENDPOINT_URL
     )
     ds = dataset(
-        source=S3_PATH + f"/{tick_type}/symbol={symbol}/",
+        source=DATA_S3_PATH + f"/{tick_type}/symbol={symbol}/",
         format='feather',
         filesystem=s3,
         partitioning='hive',

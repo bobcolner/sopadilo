@@ -81,8 +81,8 @@ export B2_ACCESS_KEY_ID=""  # applicationKeyId
 export B2_SECRET_ACCESS_KEY=""  # applicationKey
 export B2_ENDPOINT_URL="https://s3.us-west-000.backblazeb2.com"
 # quant results path
-export LOCAL_PATH="/home/trinity/pandas-polygon/data"
-export S3_PATH="polygon-equities/data"
+export DATA_LOCAL_PATH="/home/trinity/pandas-polygon/data"
+export DATA_S3_PATH="polygon-equities/data"
 
 # copy data from ai notebook to GCS
 gsutil copy gs://emerald-skill-datascience/corex300.pkl /Users/bobcolner/QuantClarity/pandas-polygon

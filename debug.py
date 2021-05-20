@@ -1,5 +1,12 @@
+from utilities.globals import DATA_LOCAL_PATH, DATA_S3_PATH
+
+print(DATA_LOCAL_PATH)
+print(DATA_S3_PATH)
+
 import datetime as dt
 import numpy as np
+import pandas as pd
+from bar_sampler import meta, sampler, stacked
 
 
 thresh = {
@@ -28,12 +35,8 @@ thresh = {
     'reward_ratios': list(np.arange(2, 11, 0.5)),
 }
 
-from bar_sampler.meta import get_bar_date, get_bar_dates
+print(thresh)
 
-# bd = get_bar_date(thresh, date='2020-01-02')
-bds = get_bar_dates(thresh)
+# bd = meta.get_bar_date(thresh, date='2019-01-02')
 
-from bar_sampler.stacked import fill_gaps_dates
-
-# fill daily gaps
-stacked_df = fill_gaps_dates(bds, fill_col='price_vwap')
+# print(bd.keys())

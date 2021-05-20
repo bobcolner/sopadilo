@@ -1,9 +1,6 @@
-from os import environ
 from pathlib import Path
 import pandas as pd
-
-
-LOCAL_PATH = environ['LOCAL_PATH']
+from utilities.globals import DATA_LOCAL_PATH
 
 
 def get_open_market_dates(start_date: str, end_date: str) -> list:
@@ -17,7 +14,7 @@ def get_open_market_dates(start_date: str, end_date: str) -> list:
 def list_dates_from_path(symbol: str, tick_type: str) -> list:
     from os import listdir
     # assumes 'hive' {date}={yyyy-mm-dd}/data.{format} filename template
-    dates_path = f"{LOCAL_PATH}/{tick_type}/symbol={symbol}"
+    dates_path = f"{DATA_LOCAL_PATH}/{tick_type}/symbol={symbol}"
     if Path(dates_path).exists():    
         file_list = listdir(dates_path)
         if '.DS_Store' in file_list:

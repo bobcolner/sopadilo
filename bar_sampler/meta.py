@@ -24,7 +24,7 @@ def get_symbol_vol_filter(symbol: str, start_date: str,
     return df.dropna().reset_index(drop=True)
 
 
-def filter_trades(tdf: pd.DataFrame, drop_filtered: bool=False) -> pd.DataFrame:
+def filter_trades(tdf: pd.DataFrame, value_winlen: int=22, deviation_winlen: int=1111, k: int=11) -> pd.DataFrame:
     tdf = tdf.copy()
     tdf['status'] = 'clean'
     # filter ts delta
@@ -47,13 +47,9 @@ def filter_trades(tdf: pd.DataFrame, drop_filtered: bool=False) -> pd.DataFrame:
     tdf = tdf.drop(columns=['sip_dt', 'exchange_dt', 'sequence', 'trade_id', 'exchange_id', 'irregular', 'conditions'])
     tdf = tdf.rename(columns={'size': 'volume'}) 
     # add mad filter
-    tdf = mad.mad_filter_df(tdf, col='price', center=False, value_winlen=22, devations_winlen=1111, k=11, diff='pct')
-    tdf.loc[tdf.mad_outlier==True, 'status'] = 'filtered: MAD outlier'
+    tdf = mad.mad_filter_df(tdf, col='price', value_winlen=value_winlen, deviation_winlen=deviation_winlen, k=k, center=False, diff='pct')
     tdf.loc[0:20, 'status'] = 'filtered: MAD warm-up'
-    # optional drop bad/filtered rows
-    if drop_filtered:
-        tdf = tdf.loc[tdf.status.str.startswith('filtered:') != True]
-
+    tdf.loc[tdf.mad_outlier==True, 'status'] = 'filtered: MAD outlier'
     return tdf
 
 
@@ -77,14 +73,21 @@ def enrich_tick(tdf: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_bar_date(thresh: dict, date: str) -> dict:
-    # get raw ticks
+    # get raw ticks (all trades)
     tdf_v1 = s3_backend.fetch_date_df(thresh['symbol'], date, tick_type='trades')
-    # filter ticks
-    tdf_v2 = filter_trades(tdf_v1, drop_filtered=False)
-    # drop dirtly trades
+    # filter ticks (all trades)
+    tdf_v2 = filter_trades(tdf_v1, thresh['mad_value_winlen'], thresh['mad_deviation_winlen'], thresh['mad_k'])
+    # drop dirtly trades (clean only)
     tdf_v3 = tdf_v2[~tdf_v2.status.str.startswith('filtered')]
-    # enrich with tick-rule and jma 
+    # enrich with tick-rule and jma (clean only)
     tdf_v4 = enrich_tick(tdf_v3)
+    # combine ticks (all trades)
+    tdf_v5 = pd.merge(
+        left=tdf_v2[['nyc_dt', 'price', 'volume', 'status', 'price_median_diff_median']], 
+        right=tdf_v4[['nyc_dt', 'price', 'volume', 'price_jma']],
+        on=['nyc_dt', 'price', 'volume'],
+        how='left',
+        )
     # time bactch ticks
     bdf = time_batches.get_batches(tdf_v4, freq=thresh['batch_freq'])
     # sample bars
@@ -105,8 +108,7 @@ def get_bar_date(thresh: dict, date: str) -> dict:
         'symbol': thresh['symbol'],
         'date': date,
         'thresh': thresh,
-        'ticks_df_all': tdf_v2,
-        'ticks_df_clean': tdf_v4,
+        'ticks_df': tdf_v5,
         'batches_df': bdf,
         'bars_df': pd.DataFrame(bars),
         'bars': bars,
@@ -138,8 +140,5 @@ def get_bar_dates(thresh: dict, ray_on: bool=True) -> list:
 
     if ray_on:
         bar_dates = ray.get(bar_dates)
-    
-    # stacked_df = stacked.fill_gaps_dates(bar_dates, fill_col='price_vwap')
-    # stats_df = stacked.stacked_df_stats(stacked_df)
 
     return bar_dates
