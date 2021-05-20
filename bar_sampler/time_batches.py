@@ -10,8 +10,8 @@ def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
 
     date = tdf['nyc_dt'].dt.date[0].isoformat()
     dr = pd.date_range(
-        start=date+'T09:31:00',
-        end=date+'T15:59:00',
+        start=f"{date}T09:31:00",
+        end=f"{date}T15:59:00",
         freq=freq,
         tz='America/New_York',
         closed=None

@@ -1,10 +1,8 @@
-import os
 import requests
+from utilities.globals import POLYGON_API_KEY
 
 
 BASE_URL = 'https://api.polygon.io'
-
-POLYGON_API_KEY = os.environ['POLYGON_API_KEY']
 
 
 def validate_response(response: str):

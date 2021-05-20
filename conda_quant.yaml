@@ -56,8 +56,8 @@ dependencies:
     - pandas-bokeh
     # - finplot
     # - yellowbrick
-    # - ray[tune]
-    # - tune-sklearn
+    - 'ray[tune]'
+    - tune-sklearn
     - robustats
     # - skranger
     # - ppscore

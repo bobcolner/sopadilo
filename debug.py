@@ -4,11 +4,19 @@ import numpy as np
 
 thresh = {
     # meta params
-    'symbol': 'VTI',
-    'start_date': '2020-01-02',
-    'end_date': '2020-01-07',
+    'symbol': 'GLD',
+    'start_date': '2020-01-10',
+    'end_date': '2020-01-15',
+    # filter
+    'mad_value_winlen': 22,
+    'mad_deviation_winlen': 1111,
+    'mad_k': 11,
+    'jma_winlen': 7,
+    'jma_power': 2,
+    # time batcher
+    'batch_freq': '3s',
     # bar sampler params
-    'renko_return': 'price_return',
+    'renko_return': 'price_jma_return',
     'renko_size': 0.1,
     'renko_reveral_multiple': 2,
     'renko_range_frac': 22,
@@ -17,13 +25,7 @@ thresh = {
     'min_tick_count': 33,
     # label params
     'add_label': True,
-    'reward_ratios': list(np.arange(2.5, 11, 0.5)),
-    # filter
-    'mad_value_winlen': 22,
-    'mad_deviation_winlen': 1111,
-    'mad_k': 11,
-    'jma_winlen': 7,
-    'jma_power': 2,
+    'reward_ratios': list(np.arange(2, 11, 0.5)),
 }
 
 from bar_sampler.meta import get_bar_date, get_bar_dates
