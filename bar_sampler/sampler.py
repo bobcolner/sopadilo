@@ -14,7 +14,7 @@ def weighted_median(df: pd.DataFrame, val: 'str', weight: 'str') -> pd.DataFrame
     return df_sorted[cumsum >= cutoff][val].iloc[0]
 
 
-def weighted_quantile(values: list, weights: list, probs: list=[0.1, 0.5, 0.9]) -> list:
+def weighted_quantile(values: list, weights: list, probs: list=[.05, .25, .5, .75, .95]) -> list:
     dsw = DescrStatsW(data=values, weights=weights)
     return dsw.quantile(probs).values
 
@@ -24,6 +24,9 @@ def state_to_bar(state: dict) -> dict:
     if state['stat']['tick_count'] < 11:
         return new_bar
 
+    price_vol_df = pd.DataFrame({'price': state['trades']['price'], 'volume': state['trades']['volume']}).dropna().reset_index(drop=True)
+    price_vwap = weighted_mean(price_vol_df.price, price_vol_df.volume)
+    wquants = weighted_quantile(price_vol_df.price, price_vol_df.volume)
     new_bar = {
         'bar_trigger': state['stat']['bar_trigger'],
         'open_at': state['trades']['nyc_dt'][0],
@@ -32,15 +35,21 @@ def state_to_bar(state: dict) -> dict:
         'tick_count': state['stat']['tick_count'],
         'volume': state['stat']['volume'],
         'dollars': state['stat']['dollars'],
+        # 'dollars': state['stat']['volume'] * price_vwap,
         'tick_imbalance': state['stat']['tick_imbalance'],
         'volume_imbalance': state['stat']['volume_imbalance'],
-        'price_return': state['stat']['price_return'],
-        'price_close': state['trades']['price'][-1],
         'price_high': state['stat']['price_high'],
         'price_low': state['stat']['price_low'],
+        'price_open': price_vol_df.price.values[0],
+        'price_close': price_vol_df.price.values[-1],
         'price_range': state['stat']['price_range'],
         'price_return': state['stat']['price_return'],
-        'price_vwap': weighted_mean(pd.Series(state['trades']['price']), pd.Series(state['trades']['volume'])),
+        'price_vwap': price_vwap,
+        'price_wq05': wquants[0],
+        'price_wq25': wquants[1],
+        'price_wq50': wquants[2],
+        'price_wq75': wquants[3],
+        'price_wq95': wquants[4],
     }
     return new_bar
 
@@ -58,6 +67,9 @@ def reset_state(thresh: dict={}) -> dict:
     state['trades']['price_jma'] = []
     state['trades']['price_high'] = []
     state['trades']['price_low'] = []
+    #
+    state['batches'] = {}
+    state['batches']['nyc_dt'] = []
     # 'streaming' metrics
     state['stat'] = {}
     state['stat']['duration_td'] = None
@@ -134,21 +146,25 @@ def check_bar_thresholds(state: dict) -> dict:
 
 
 def update_bar_state(tick: namedtuple, state: dict, bars: list) -> tuple:
-    # append tick
-    state['trades']['nyc_dt'].append(tick.close_at)
-    state['trades']['tick_count'].append(tick.tick_count)
-    state['trades']['volume'].append(tick.volume)
-    state['trades']['side'].append(tick.side)
-    state['trades']['price'].append(tick.price)
-    state['trades']['price_high'].append(tick.price_high)
-    state['trades']['price_low'].append(tick.price_low)
-    state['trades']['price_jma'].append(tick.price_jma)
-    # basic
-    state['stat']['duration_td'] = state['trades']['nyc_dt'][-1] - state['trades']['nyc_dt'][0]
-    state['stat']['tick_count'] += tick.tick_count
-    state['stat']['volume'] += tick.volume
-    state['stat']['dollars'] += (tick.price * tick.volume)
+
+    # basic duration update (always available)
+    state['batches']['nyc_dt'].append(tick.close_at)
+    state['stat']['duration_td'] = state['batches']['nyc_dt'][-1] - state['batches']['nyc_dt'][0]
+
     if tick.tick_count > 0:
+        # append tick
+        state['trades']['nyc_dt'].append(tick.close_at)
+        state['trades']['tick_count'].append(tick.tick_count)
+        state['trades']['volume'].append(tick.volume)
+        state['trades']['side'].append(tick.side)
+        state['trades']['price'].append(tick.price)
+        state['trades']['price_high'].append(tick.price_high)
+        state['trades']['price_low'].append(tick.price_low)
+        state['trades']['price_jma'].append(tick.price_jma)
+        # 'stats'
+        state['stat']['tick_count'] += tick.tick_count
+        state['stat']['volume'] += tick.volume
+        state['stat']['dollars'] += tick.price * tick.volume
         # price
         state['stat']['price_low'] = tick.price_low if tick.price_low < state['stat']['price_low'] else state['stat']['price_low']
         state['stat']['price_high'] = tick.price_high if tick.price_high > state['stat']['price_high'] else state['stat']['price_high']
@@ -160,6 +176,7 @@ def update_bar_state(tick: namedtuple, state: dict, bars: list) -> tuple:
         state['stat']['tick_imbalance'] += tick.side
         state['stat']['volume_imbalance'] += (tick.side * tick.volume)
         state['stat']['dollar_imbalance'] += (tick.side * tick.volume * tick.price)
+
     # check state tirggered sample threshold
     state = check_bar_thresholds(state)
     if state['stat']['bar_trigger'] != 'waiting':
@@ -181,6 +198,6 @@ class BarSampler:
 
     def batch(self, ticks_df: pd.DataFrame):
         # for tick in ticks_df.dropna().itertuples():
-        for tick in ticks_df.itertuples():    
+        for tick in ticks_df.itertuples():
             self.update(next_tick=tick)
         return self.bars

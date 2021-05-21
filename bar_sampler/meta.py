@@ -36,19 +36,21 @@ def filter_trades(tdf: pd.DataFrame, value_winlen: int=22, deviation_winlen: int
     tdf.loc[tdf['size'] == 0, 'status'] = 'filtered: zero volume'
     # add local nyc time
     tdf['nyc_dt'] = tdf['sip_dt']
-    tdf = tdf.set_index('nyc_dt').tz_localize('UTC').tz_convert('America/New_York').reset_index()
+    tdf = tdf.set_index('nyc_dt').tz_localize('UTC').tz_convert('America/New_York')
     # filter hours
     if False:
-        early_id = df[dt.time(hour=0, minute=0):dt.time(hour=9, minute=31)].index
-        late_id = df[dt.time(hour=15, minute=59):dt.time(hour=23, minute=59)].index
-        df.loc[early_id, 'status'] = 'filtered: pre-market'
-        df.loc[late_id, 'status'] = 'filtered: post-market'
+        early_id = tdf[dt.time(hour=0, minute=0):dt.time(hour=9, minute=31)].index
+        late_id = tdf[dt.time(hour=16, minute=0):dt.time(hour=0, minute=0)].index
+        tdf.loc[early_id, 'status'] = 'filtered: pre-market'
+        tdf.loc[late_id, 'status'] = 'filtered: post-market'
+
+    tdf = tdf.reset_index()
     # remove/rename columns
     tdf = tdf.drop(columns=['sip_dt', 'exchange_dt', 'sequence', 'trade_id', 'exchange_id', 'irregular', 'conditions'])
     tdf = tdf.rename(columns={'size': 'volume'}) 
     # add mad filter
     tdf = mad.mad_filter_df(tdf, col='price', value_winlen=value_winlen, deviation_winlen=deviation_winlen, k=k, center=False, diff='pct')
-    tdf.loc[0:20, 'status'] = 'filtered: MAD warm-up'
+    tdf.loc[0:(value_winlen * 3), 'status'] = 'filtered: MAD warm-up'
     tdf.loc[tdf.mad_outlier==True, 'status'] = 'filtered: MAD outlier'
     return tdf
 
@@ -127,7 +129,8 @@ def get_bar_dates(thresh: dict, ray_on: bool=True) -> list:
 
     for row in daily_stats_df.itertuples():
         if 'range_jma_lag' in daily_stats_df.columns:
-            rs = max(row.range_jma_lag / thresh['renko_range_frac'], row.vwap_jma_lag * 0.0005)  # force min
+            rs = max(row.range_jma_lag / thresh['renko_range_frac'],
+                    row.vwap_jma_lag * (thresh['renko_range_min_pct_value'] / 100))  # force min
             rs = min(rs, row.vwap_jma_lag * 0.005)  # enforce max
             thresh.update({'renko_size': rs})
 

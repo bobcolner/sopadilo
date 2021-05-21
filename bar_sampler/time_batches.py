@@ -1,5 +1,4 @@
 import datetime as dt
-# from tqdm import tqdm
 import pandas as pd
 
 
@@ -10,13 +9,14 @@ def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
 
     date = tdf['nyc_dt'].dt.date[0].isoformat()
     dr = pd.date_range(
-        start=f"{date}T09:31:00",
-        end=f"{date}T15:59:00",
+        start=f"{date}T09:30:00",
+        end=f"{date}T16:00:00",
         freq=freq,
         tz='America/New_York',
-        closed=None
+        closed=None,
         )
     batches = []
+    # from tqdm import tqdm
     # for i in tqdm(list(range(len(dr)-1))):
     for i in list(range(len(dr)-1)):        
         tick_batch = tdf.loc[(tdf['nyc_dt'] >= dr[i]) & (tdf['nyc_dt'] < dr[i+1])]

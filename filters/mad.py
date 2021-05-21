@@ -12,7 +12,7 @@ def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, deviation_winle
     elif diff == 'pct':
         df[col+'_median_diff'] = abs((df[col] - df[col+'_median']) / df[col+'_median']) * 100
 
-    df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(deviation_winlen, min_periods=value_winlen, center=False).median()
+    df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(deviation_winlen, min_periods=(value_winlen * 3), center=False).median()
     if diff == 'simple':
         sim_min = 0.005
         sim_max = 0.05
