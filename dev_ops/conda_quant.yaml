@@ -1,4 +1,4 @@
-# conda/mamba env create --force -f conda_quant.yaml
+# conda env create --force -f conda_quant.yaml
 name: quant
 channels:
   - conda-forge
@@ -25,7 +25,7 @@ dependencies:
   - ipython
   # - jedi == 0.17.2
   - ipdb
-  - jupyterlab > 3.0
+  - jupyterlab < 3.0
   - jupyterlab-git
   - nbdime
   - matplotlib
@@ -58,15 +58,16 @@ dependencies:
     # - yellowbrick
     - 'ray[tune]'
     - tune-sklearn
-    - robustats
+    # - robustats
     # - skranger
     # - ppscore
     # - persist-queue[extra]
     # - dcor
-    - pdbpp
-    - pdbr
+    # - pdbpp
+    # - pdbr
     - pudb
     - ipdb
+    - icecream
 
 # jupyter labextension install:
   # @jupyterlab/toc

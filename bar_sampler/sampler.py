@@ -24,7 +24,7 @@ def state_to_bar(state: dict) -> dict:
     if state['stat']['tick_count'] < 11:
         return new_bar
 
-    price_vol_df = pd.DataFrame({'price': state['trades']['price'], 'volume': state['trades']['volume']}).dropna().reset_index(drop=True)
+    price_vol_df = pd.DataFrame({'price': state['trades']['price'], 'volume': state['trades']['volume']})
     price_vwap = weighted_mean(price_vol_df.price, price_vol_df.volume)
     wquants = weighted_quantile(price_vol_df.price, price_vol_df.volume)
     new_bar = {
@@ -35,7 +35,6 @@ def state_to_bar(state: dict) -> dict:
         'tick_count': state['stat']['tick_count'],
         'volume': state['stat']['volume'],
         'dollars': state['stat']['dollars'],
-        # 'dollars': state['stat']['volume'] * price_vwap,
         'tick_imbalance': state['stat']['tick_imbalance'],
         'volume_imbalance': state['stat']['volume_imbalance'],
         'price_high': state['stat']['price_high'],
@@ -67,7 +66,7 @@ def reset_state(thresh: dict={}) -> dict:
     state['trades']['price_jma'] = []
     state['trades']['price_high'] = []
     state['trades']['price_low'] = []
-    #
+    # full update batches log (includes zero trade batches)
     state['batches'] = {}
     state['batches']['nyc_dt'] = []
     # 'streaming' metrics
@@ -197,7 +196,7 @@ class BarSampler:
         self.state, self.bars = update_bar_state(next_tick, self.state, self.bars)
 
     def batch(self, ticks_df: pd.DataFrame):
-        # for tick in ticks_df.dropna().itertuples():
         for tick in ticks_df.itertuples():
             self.update(next_tick=tick)
+
         return self.bars

@@ -2,7 +2,7 @@ import datetime as dt
 import pandas as pd
 from data_model import arrow_dataset, s3_backend
 from filters import mad, jma, tick_rule
-from bar_sampler import time_batches, sampler, labels, stacked
+from bar_sampler import time_batches, sampler, labels
 
 
 def get_symbol_vol_filter(symbol: str, start_date: str, 
