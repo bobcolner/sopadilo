@@ -12,3 +12,4 @@ data/*
 dask-worker-space/*
 joblib/*
 .jupyter_symlinks/*
+.vscode

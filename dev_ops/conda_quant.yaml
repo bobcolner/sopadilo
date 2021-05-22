@@ -39,7 +39,6 @@ dependencies:
   - graphviz
   - joblib
   - tenacity
-  - psutil
   - tqdm
   - requests
   - trio
@@ -65,8 +64,8 @@ dependencies:
     # - dcor
     # - pdbpp
     # - pdbr
+    # - ipdb
     - pudb
-    - ipdb
     - icecream
 
 # jupyter labextension install:

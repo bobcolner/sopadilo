@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, deviation_winlen: int,
-    k: int, center: bool=False, diff: str='pct') -> pd.DataFrame:
+    k: int, center: bool=False, diff: str='simple') -> pd.DataFrame:
     
     df = df.copy()
     df[col+'_median'] = df[col].rolling(value_winlen, min_periods=value_winlen, center=center).median()
@@ -14,18 +14,16 @@ def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, deviation_winle
 
     df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(deviation_winlen, min_periods=(value_winlen * 3), center=False).median()
     if diff == 'simple':
-        sim_min = 0.005
-        sim_max = 0.05
-        df.loc[df[col+'_median_diff_median'] < sim_max, col+'_median_diff_median'] = sim_min  # enforce min bound
-        df.loc[df[col+'_median_diff_median'] > sim_min, col+'_median_diff_median'] = sim_max  # enforce max bound
+        diff_min = 0.0025
+        diff_max = 0.05
     elif diff == 'pct':
-        pct_min = 0.001
-        pct_max = 0.03
-        df.loc[df[col+'_median_diff_median'] < pct_min, col+'_median_diff_median'] = pct_min  # enforce min bound
-        df.loc[df[col+'_median_diff_median'] > pct_max, col+'_median_diff_median'] = pct_max  # enforce max bound
+        diff_min = 0.001
+        diff_max = 0.03
 
-    df['mad_outlier'] = df[col+'_median_diff'] > (df[col+'_median_diff_median'] * k)
-    print(df.mad_outlier.value_counts() / len(df))
+    df.loc[df[col+'_median_diff_median'] < diff_min, col+'_median_diff_median'] = diff_min  # enforce min bound
+    df.loc[df[col+'_median_diff_median'] > diff_max, col+'_median_diff_median'] = diff_max  # enforce max bound
+    df['mad_outlier'] = df[col+'_median_diff'] > (df[col+'_median_diff_median'] * k)  # outlier check 
+
     return df
 
 

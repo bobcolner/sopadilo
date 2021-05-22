@@ -39,7 +39,7 @@ def filter_trades(tdf: pd.DataFrame, value_winlen: int=22, deviation_winlen: int
     tdf = tdf.set_index('nyc_dt').tz_localize('UTC').tz_convert('America/New_York')
     # filter hours
     if False:
-        early_id = tdf[dt.time(hour=0, minute=0):dt.time(hour=9, minute=31)].index
+        early_id = tdf[dt.time(hour=0, minute=0):dt.time(hour=9, minute=30)].index
         late_id = tdf[dt.time(hour=16, minute=0):dt.time(hour=0, minute=0)].index
         tdf.loc[early_id, 'status'] = 'filtered: pre-market'
         tdf.loc[late_id, 'status'] = 'filtered: post-market'
@@ -49,7 +49,7 @@ def filter_trades(tdf: pd.DataFrame, value_winlen: int=22, deviation_winlen: int
     tdf = tdf.drop(columns=['sip_dt', 'exchange_dt', 'sequence', 'trade_id', 'exchange_id', 'irregular', 'conditions'])
     tdf = tdf.rename(columns={'size': 'volume'}) 
     # add mad filter
-    tdf = mad.mad_filter_df(tdf, col='price', value_winlen=value_winlen, deviation_winlen=deviation_winlen, k=k, center=False, diff='pct')
+    tdf = mad.mad_filter_df(tdf, col='price', value_winlen=value_winlen, deviation_winlen=deviation_winlen, k=k)
     tdf.loc[0:(value_winlen * 3), 'status'] = 'filtered: MAD warm-up'
     tdf.loc[tdf.mad_outlier==True, 'status'] = 'filtered: MAD outlier'
     return tdf
@@ -78,7 +78,7 @@ def get_bar_date(thresh: dict, date: str) -> dict:
     # get raw ticks (all trades)
     tdf_v1 = s3_backend.fetch_date_df(thresh['symbol'], date, tick_type='trades')
     # filter ticks (all trades)
-    tdf_v2 = filter_trades(tdf_v1, thresh['mad_value_winlen'], thresh['mad_deviation_winlen'], thresh['mad_k'])
+    tdf_v2 = filter_trades(tdf_v1, thresh['mad_value_winlen'], thresh['mad_deviation_winlen'], thresh['mad_k'], thresh['mad_diff'])
     # drop dirtly trades (clean only)
     tdf_v3 = tdf_v2[~tdf_v2.status.str.startswith('filtered')]
     # enrich with tick-rule and jma (clean only)

@@ -1,3 +1,4 @@
+# %%
 from utilities.globals import DATA_LOCAL_PATH, DATA_S3_PATH
 
 print(DATA_LOCAL_PATH)
@@ -8,7 +9,7 @@ import numpy as np
 import pandas as pd
 from bar_sampler import meta, sampler, stacked
 
-
+# %%
 thresh = {
     # meta params
     'symbol': 'GLD',
@@ -36,7 +37,9 @@ thresh = {
 }
 
 print(thresh)
+# %%
+bd = meta.get_bar_date(thresh, date='2019-01-02')
 
-# bd = meta.get_bar_date(thresh, date='2019-01-02')
 
-# print(bd.keys())
+
+# %%
