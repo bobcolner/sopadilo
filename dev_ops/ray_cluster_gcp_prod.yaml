@@ -1,0 +1,58 @@
+# A unique identifier for the head node and workers of this cluster.
+cluster_name: sopadilo
+
+# The maximum number of worker nodes to launch in addition to the head
+# node. min_workers default to 0.
+max_workers: 1
+
+# If a node is idle for this many minutes, it will be removed.
+idle_timeout_minutes: 5
+
+# Cloud-provider specific configuration.
+provider:
+    type: gcp
+    region: us-east1
+    availability_zone: us-east1-b
+    project_id: sopadilo
+
+# How Ray will authenticate with newly launched nodes.
+auth:
+    ssh_user: ubuntu
+
+# Files or directories to copy to the head and worker nodes. The format is a
+# dictionary from REMOTE_PATH: LOCAL_PATH, e.g.
+file_mounts: {
+   "/home/ubuntu/sopadilo": "/Users/bobcolner/QuantClarity/sopadilo/"
+}
+
+# Whether changes to directories in file_mounts or cluster_synced_files in the head node
+# should sync to the worker node continuously
+file_mounts_sync_continuously: True
+
+# Patterns for files to exclude when running rsync up or rsync down
+rsync_exclude:
+    - "**/.git"
+    - "**/.git/**"
+
+# Pattern files to use for filtering out files when running rsync up or rsync down. The file is searched for
+# in the source directory and recursively through all subdirectories. For example, if .gitignore is provided
+# as a value, the behavior will match git's behavior for finding and using .gitignore files.
+rsync_filter:
+    - ".gitignore"
+
+# Node startup commands/scripts
+setup_commands:
+    # Note: if you're developing Ray, you probably want to create a Docker image that
+    # has your Ray repo pre-cloned. Then, you can replace the pip installs
+    # below with a git checkout <your_sha> (and possibly a recompile).
+    # To run the nightly version of ray (as opposed to the latest), either use a rayproject docker image
+    # that has the "nightly" (e.g. "rayproject/ray-ml:nightly-gpu") or uncomment the following line:
+    # - pip install -U "ray[default] @ https://s3-us-west-2.amazonaws.com/ray-wheels/latest/ray-2.0.0.dev0-cp37-cp37m-manylinux2014_x86_64.whl"
+  - pip install ray s3fs boto3 pandas_market_calendars
+
+# Custom commands that will be run on the head node after common setup.
+head_setup_commands:
+  - pip install google-api-python-client==1.7.8
+
+# Custom commands that will be run on worker nodes after common setup.
+worker_setup_commands: []
