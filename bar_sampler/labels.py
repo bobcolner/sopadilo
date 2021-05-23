@@ -3,7 +3,6 @@ import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
 
 
-
 def get_trend_outcome(label_prices: pd.DataFrame) -> dict:
 
     if len(label_prices) < 30:

@@ -9,7 +9,9 @@ bokeh_output.html
 *.csv
 .Rhistory
 data/*
+tmp/*
 dask-worker-space/*
 joblib/*
 .jupyter_symlinks/*
 .vscode
+/utilities/globals_unsafe.py

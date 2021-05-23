@@ -3,7 +3,7 @@ from tempfile import NamedTemporaryFile
 from pathlib import Path
 import pandas as pd
 from data_api import polygon_df
-from utilities.globals import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
+from utilities.globals_unsafe import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
 
 
 def get_s3fs_client(cached: bool=False):

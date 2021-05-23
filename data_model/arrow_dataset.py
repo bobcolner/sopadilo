@@ -1,7 +1,7 @@
 import pandas as pd
 from pyarrow.dataset import dataset, field
 from pyarrow._dataset import FileSystemDataset
-from utilities.globals import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
+from utilities.globals_unsafe import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
 
 
 def get_local_dataset(tick_type: str, symbol: str=None) -> FileSystemDataset:

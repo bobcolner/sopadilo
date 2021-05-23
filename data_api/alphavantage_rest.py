@@ -1,6 +1,6 @@
 from requests import get
 import pandas as pd
-from utilities.globals import ALPHAVANTAGE_API_KEY
+from utilities.globals_unsafe import ALPHAVANTAGE_API_KEY
 
 # https://www.alphavantage.co/documentation/
 BASE_URL = 'https://www.alphavantage.co'

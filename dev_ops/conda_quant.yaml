@@ -67,6 +67,7 @@ dependencies:
     # - ipdb
     - pudb
     - icecream
+    # - 'smart_open[gcs,s3]'
 
 # jupyter labextension install:
   # @jupyterlab/toc

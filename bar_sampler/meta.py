@@ -78,7 +78,7 @@ def get_bar_date(thresh: dict, date: str) -> dict:
     # get raw ticks (all trades)
     tdf_v1 = s3_backend.fetch_date_df(thresh['symbol'], date, tick_type='trades')
     # filter ticks (all trades)
-    tdf_v2 = filter_trades(tdf_v1, thresh['mad_value_winlen'], thresh['mad_deviation_winlen'], thresh['mad_k'], thresh['mad_diff'])
+    tdf_v2 = filter_trades(tdf_v1, thresh['mad_value_winlen'], thresh['mad_deviation_winlen'], thresh['mad_k'])
     # drop dirtly trades (clean only)
     tdf_v3 = tdf_v2[~tdf_v2.status.str.startswith('filtered')]
     # enrich with tick-rule and jma (clean only)
