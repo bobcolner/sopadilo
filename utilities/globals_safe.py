@@ -4,7 +4,7 @@ from os import environ
 try:
     DATA_LOCAL_PATH = environ['DATA_LOCAL_PATH']
 except:
-    DATA_LOCAL_PATH = '~/data'
+    DATA_LOCAL_PATH = '/home/data'
 
 try:
     DATA_S3_PATH = environ['DATA_S3_PATH']

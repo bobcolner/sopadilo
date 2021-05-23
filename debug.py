@@ -1,15 +1,8 @@
-# %%
-from utilities.globals import DATA_LOCAL_PATH, DATA_S3_PATH
-
-print(DATA_LOCAL_PATH)
-print(DATA_S3_PATH)
-
 import datetime as dt
 import numpy as np
 import pandas as pd
-from bar_sampler import meta, sampler, stacked
+from bar_sampler import meta
 
-# %%
 thresh = {
     # meta params
     'symbol': 'GLD',
@@ -35,11 +28,8 @@ thresh = {
     'add_label': True,
     'reward_ratios': list(np.arange(2, 11, 0.5)),
 }
-
 print(thresh)
-# %%
-bd = meta.get_bar_date(thresh, date='2019-01-02')
 
+bd = meta.get_bar_date(thresh, '2020-01-02')
 
-
-# %%
+bds = meta.get_bar_dates(thresh, ray_on=True)
