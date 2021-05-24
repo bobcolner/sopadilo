@@ -51,7 +51,7 @@ class MADFilter:
         self.deviations_median = diff_min if self.deviations_median < diff_min else self.deviations_median  # enforce lower limit
         self.deviations_median = diff_max if self.deviations_median > diff_max else self.deviations_median  # enforce upper limit
         # final tick status logic
-        if len(self.values) < (self.deviation_winlen):
+        if len(self.deviations) < (self.value_winlen * 3):
             self.status = 'mad_warmup'
         elif self.abs_diff > (self.deviations_median * self.k):
             self.status = 'mad_outlier'

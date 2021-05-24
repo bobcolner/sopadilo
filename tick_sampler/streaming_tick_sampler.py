@@ -1,45 +1,39 @@
 from collections import namedtuple
 import pandas as pd
-from statsmodels.stats.weightstats import DescrStatsW
+from pandas._libs.tslibs.timestamps import Timestamp
+from utilities import stats
 
 
-def weighted_mean(values: pd.Series, weights: pd.Series) -> pd.Series:
-    return (values * weights).sum() / weights.sum()
-
-
-def weighted_median(df: pd.DataFrame, val: 'str', weight: 'str') -> pd.DataFrame:
-    df_sorted = df.sort_values(val)
-    cumsum = df_sorted[weight].cumsum()
-    cutoff = df_sorted[weight].sum() / 2.0
-    return df_sorted[cumsum >= cutoff][val].iloc[0]
-
-
-def weighted_quantile(values: list, weights: list, probs: list=[0.1, 0.5, 0.9]) -> list:
-    dsw = DescrStatsW(data=values, weights=weights)
-    return dsw.quantile(probs).values
-
-
-def state_to_bar(state: dict) -> dict:
-    
+def state_to_bar(state: dict) -> dict:    
     new_bar = {}
     if state['stat']['tick_count'] < 11:
         return new_bar
+
+    price_vol_df = pd.DataFrame({'price': state['trades']['price'], 'volume': state['trades']['volume']})
+    price_vwap = stats.weighted_mean(price_vol_df.price, price_vol_df.volume)
+    wquants = stats.weighted_quantile(price_vol_df.price, price_vol_df.volume)
     new_bar = {
         'bar_trigger': state['stat']['bar_trigger'],
-        'open_at': state['trades']['nyc_dt'][0],
-        'close_at': state['trades']['nyc_dt'][-1],
-        'duration_td': state['trades']['nyc_dt'][-1] - state['trades']['nyc_dt'][0],
+        'open_at': state['trades']['close_at'][0],
+        'close_at': state['trades']['close_at'][-1],
+        'duration_td': state['trades']['close_at'][-1] - state['trades']['close_at'][0],
         'tick_count': state['stat']['tick_count'],
         'volume': state['stat']['volume'],
         'dollars': state['stat']['dollars'],
         'tick_imbalance': state['stat']['tick_imbalance'],
-        'price_return': state['stat']['price_return'],
-        'price_close': state['trades']['price'][-1],
+        'volume_imbalance': state['stat']['volume_imbalance'],
         'price_high': state['stat']['price_high'],
         'price_low': state['stat']['price_low'],
+        'price_open': price_vol_df.price.values[0],
+        'price_close': price_vol_df.price.values[-1],
         'price_range': state['stat']['price_range'],
         'price_return': state['stat']['price_return'],
-        'price_vwap': weighted_mean(pd.Series(state['trades']['price']), pd.Series(state['trades']['volume'])),
+        'price_vwap': price_vwap,
+        'price_wq05': wquants[0],
+        'price_wq25': wquants[1],
+        'price_wq50': wquants[2],
+        'price_wq75': wquants[3],
+        'price_wq95': wquants[4],
     }
     return new_bar
 
@@ -49,7 +43,7 @@ def reset_state(thresh: dict={}) -> dict:
     state['thresh'] = thresh
     # tick event log
     state['trades'] = {}
-    state['trades']['nyc_dt'] = []
+    state['trades']['close_at'] = []
     state['trades']['tick_count'] = []
     state['trades']['volume'] = []
     state['trades']['side'] = []
@@ -57,6 +51,9 @@ def reset_state(thresh: dict={}) -> dict:
     state['trades']['price_jma'] = []
     state['trades']['price_high'] = []
     state['trades']['price_low'] = []
+    # full update batches log (includes zero trade batches)
+    state['batches'] = {}
+    state['batches']['close_at'] = []
     # 'streaming' metrics
     state['stat'] = {}
     state['stat']['duration_td'] = None
@@ -132,32 +129,44 @@ def check_bar_thresholds(state: dict) -> dict:
     return state
 
 
-def update_bar_state(tick: namedtuple, state: dict, bars: list) -> tuple:
-    # append tick
-    state['trades']['nyc_dt'].append(tick.close_at)
-    state['trades']['tick_count'].append(tick.tick_count)
-    state['trades']['volume'].append(tick.volume)
-    state['trades']['side'].append(tick.side)
-    state['trades']['price'].append(tick.price)
-    state['trades']['price_high'].append(tick.price_high)
-    state['trades']['price_low'].append(tick.price_low)
-    state['trades']['price_jma'].append(tick.price_jma)
-    # imbalances
-    state['stat']['tick_imbalance'] += state['trades']['side'][-1]
-    state['stat']['volume_imbalance'] += (state['trades']['side'][-1] * state['trades']['volume'][-1])
-    state['stat']['dollar_imbalance'] += (state['trades']['side'][-1] * state['trades']['volume'][-1] * state['trades']['price'][-1])
-    # other
-    state['stat']['duration_td'] = state['trades']['nyc_dt'][-1] - state['trades']['nyc_dt'][0]
-    state['stat']['tick_count'] += tick.tick_count
-    state['stat']['volume'] += tick.volume
-    state['stat']['dollars'] += tick.price * tick.volume
-    # price
-    state['stat']['price_low'] = tick.price_low if tick.price_low < state['stat']['price_low'] else state['stat']['price_low']
-    state['stat']['price_high'] = tick.price_high if tick.price_high > state['stat']['price_high'] else state['stat']['price_high']
-    state['stat']['price_range'] = state['stat']['price_high'] - state['stat']['price_low']
-    state['stat']['price_return'] = tick.price - state['trades']['price'][0]
-    state['stat']['last_bar_return'] = bars[-1]['price_return'] if len(bars) > 0 else 0
-    state['stat']['price_jma_return'] = tick.price_jma - state['trades']['price_jma'][0]
+def update_bar_state(state: dict, bars: list, close_at: Timestamp, price: float, volume: int, side: int,
+    price_jma: float, price_high: float=None, price_low: float=None, tick_count: int=1) -> tuple:
+
+    # basic duration update (always available)
+    state['batches']['close_at'].append(close_at)
+    state['stat']['duration_td'] = state['batches']['close_at'][-1] - state['batches']['close_at'][0]
+
+    # adapot to either single ticks or batchces of ticks
+    price_high = price if price_high is None else price_high
+    price_low = price if price_low is None else price_low
+
+    if tick_count > 0:
+        # append tick
+        state['trades']['close_at'].append(close_at)
+        state['trades']['tick_count'].append(tick_count)
+        state['trades']['volume'].append(volume)
+        state['trades']['side'].append(side)
+        state['trades']['price'].append(price)
+        state['trades']['price_high'].append(price_high)
+        state['trades']['price_low'].append(price_low)
+        state['trades']['price_jma'].append(price_jma)
+        # 'stats'
+        state['stat']['tick_count'] += tick_count
+        state['stat']['volume'] += volume
+        state['stat']['dollars'] += price * volume
+        state['stat']['duration_td'] = state['trades']['close_at'][-1] - state['trades']['close_at'][0]
+        # price
+        state['stat']['price_low'] = price_low if price_low < state['stat']['price_low'] else state['stat']['price_low']
+        state['stat']['price_high'] = price_high if price_high > state['stat']['price_high'] else state['stat']['price_high']
+        state['stat']['price_range'] = state['stat']['price_high'] - state['stat']['price_low']
+        state['stat']['price_return'] = price - state['trades']['price'][0]
+        state['stat']['price_jma_return'] = price_jma - state['trades']['price_jma'][0]
+        state['stat']['last_bar_return'] = bars[-1]['price_return'] if len(bars) > 0 else 0
+        # imbalances
+        state['stat']['tick_imbalance'] += side
+        state['stat']['volume_imbalance'] += (side * volume)
+        state['stat']['dollar_imbalance'] += (side * volume * price)
+
     # check state tirggered sample threshold
     state = check_bar_thresholds(state)
     if state['stat']['bar_trigger'] != 'waiting':
@@ -168,11 +177,22 @@ def update_bar_state(tick: namedtuple, state: dict, bars: list) -> tuple:
     return state, bars
 
 
-class BarSampler:
+class StreamingTickSampler:
 
     def __init__(self, thresh: dict):
         self.state = reset_state(thresh)
         self.bars = []
+        self.tick_counter = 0
 
-    def update(self, tick: namedtuple):
-        self.state, self.bars = update_bar_state(tick, self.state, self.bars)
+
+    def update(self, close_at: Timestamp, price: float, volume: int, side: int, price_jma: float,
+         price_high: float=None, price_low: float=None, tick_count: int=1):
+
+        self.tick_counter = 0
+        self.state, self.bars = update_bar_state(self.state, self.bars, 
+            close_at, price, volume, side, price_jma, price_high, price_low, tick_count)
+
+
+    def batch_update(self, ticks_df: pd.DataFrame):
+        for tick in ticks_df.itertuples():
+            self.update(next_tick=tick)

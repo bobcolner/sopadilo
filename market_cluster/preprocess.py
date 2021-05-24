@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from data_model.arrow_dataset import get_dates_df
-from market_cluster.beta_resids import colwise_linreg_residuals
+from data_model import arrow_dataset
+from market_cluster import beta_resids
 
 
 SYMBOL_DETAILS_PATH = 'data/sym_details.feather'
@@ -111,7 +111,7 @@ def transform_prices(df: pd.DataFrame) -> dict:
 
 
 def prepare_data(start_date: str, end_date: str, beta_symbol: str=None) -> dict:
-    df_all = get_dates_df(tick_type='daily', symbol='market', start_date=start_date, end_date=end_date)
+    df_all = arrow_dataset.get_dates_df(tick_type='daily', symbol='market', start_date=start_date, end_date=end_date)
     df_all = add_range(df_all)
     df = filter_market(df_all)
     sym_meta = merge_symbol_stats(df)
@@ -123,7 +123,7 @@ def prepare_data(start_date: str, end_date: str, beta_symbol: str=None) -> dict:
     r.update(pivot_results)
     if beta_symbol:
         beta_results = transform_prices(df_all[df_all.symbol == beta_symbol])
-        log_returns_resid_zs_g = colwise_linreg_residuals(
+        log_returns_resid_zs_g = beta_resids.colwise_linreg_residuals(
             df=pivot_results['log_returns_zs_g'],
             beta_series=beta_results['log_returns_zs_g'][beta_symbol]
             )

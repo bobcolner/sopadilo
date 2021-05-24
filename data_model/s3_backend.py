@@ -40,7 +40,7 @@ def list_symbol_dates(symbol: str, tick_type: str) -> str:
 
 
 def list_symbols(tick_type: str) -> str:
-    paths = s3fs.ls(path=DATA_S3_PATH + tick_type, refresh=True)
+    paths = s3fs.ls(path=DATA_S3_PATH + f"/{tick_type}", refresh=True)
     return [path.split('symbol=')[1] for path in paths]
 
 
@@ -60,6 +60,15 @@ def show_symbol_storage_used(symbol: str, tick_type: str) -> dict:
 
 def get_date_df_from_s3(symbol: str, date: str, tick_type: str, columns: list=None) -> pd.DataFrame:
     byte_data = s3fs.cat(DATA_S3_PATH + f"/{tick_type}/symbol={symbol}/date={date}/data.feather")
+    if columns:
+        df = pd.read_feather(BytesIO(byte_data), columns=columns)
+    else:
+        df = pd.read_feather(BytesIO(byte_data))
+    return df
+
+
+def get_df_from_s3_path(path: str, columns: list=None) -> pd.DataFrame:
+    byte_data = s3fs.cat(DATA_S3_PATH + path)
     if columns:
         df = pd.read_feather(BytesIO(byte_data), columns=columns)
     else:
