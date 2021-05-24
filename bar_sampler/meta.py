@@ -5,13 +5,15 @@ from filters import mad, jma, tick_rule
 from bar_sampler import time_batches, sampler, labels
 
 
-def get_symbol_vol_filter(symbol: str, start_date: str, 
-    end_date: str=(dt.datetime.today().date() - dt.timedelta(days=1)).isoformat()) -> pd.DataFrame:
+def get_symbol_vol_filter(symbol: str, start_date: str,
+    end_date: str=(dt.datetime.today().date() - dt.timedelta(days=1)).isoformat(), 
+    source: str='s3') -> pd.DataFrame:
 
     # get exta 10 days
     adj_start_date = (dt.datetime.fromisoformat(start_date) - dt.timedelta(days=10)).date().isoformat()
     # get market daily from pyarrow dataset
-    df = arrow_dataset.get_dates_df(symbol='market', tick_type='daily', start_date=adj_start_date, end_date=end_date, source='local')
+    df = arrow_dataset.get_dates_df(symbol='market', tick_type='daily', start_date=adj_start_date,
+                                    end_date=end_date, source=source)
     df = df.loc[df['symbol'] == symbol].reset_index(drop=True)
     # range/volitiliry metric
     df.loc[:, 'range'] = df['high'] - df['low']
@@ -31,7 +33,7 @@ def filter_trades(tdf: pd.DataFrame, value_winlen: int=22, deviation_winlen: int
     ts_delta = abs(tdf.sip_dt - tdf.exchange_dt) > pd.to_timedelta(3, unit='S')
     tdf.loc[ts_delta, 'status'] = 'filtered: ts diff'    
     # filter irregular
-    tdf.loc[tdf.irregular == True, 'status'] = 'filtered: irregular conditions'
+    tdf.loc[tdf.irregular == True, 'status'] = 'filtered: irregular condition'
     # filter zero volume ticks
     tdf.loc[tdf['size'] == 0, 'status'] = 'filtered: zero volume'
     # add local nyc time

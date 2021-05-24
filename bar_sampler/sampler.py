@@ -1,22 +1,6 @@
 from collections import namedtuple
 import pandas as pd
-from statsmodels.stats.weightstats import DescrStatsW
-
-
-def weighted_mean(values: pd.Series, weights: pd.Series) -> pd.Series:
-    return (values * weights).sum() / weights.sum()
-
-
-def weighted_median(df: pd.DataFrame, val: 'str', weight: 'str') -> pd.DataFrame:
-    df_sorted = df.sort_values(val)
-    cumsum = df_sorted[weight].cumsum()
-    cutoff = df_sorted[weight].sum() / 2.0
-    return df_sorted[cumsum >= cutoff][val].iloc[0]
-
-
-def weighted_quantile(values: list, weights: list, probs: list=[.05, .25, .5, .75, .95]) -> list:
-    dsw = DescrStatsW(data=values, weights=weights)
-    return dsw.quantile(probs).values
+from utilities import stats
 
 
 def state_to_bar(state: dict) -> dict:    
@@ -25,8 +9,8 @@ def state_to_bar(state: dict) -> dict:
         return new_bar
 
     price_vol_df = pd.DataFrame({'price': state['trades']['price'], 'volume': state['trades']['volume']})
-    price_vwap = weighted_mean(price_vol_df.price, price_vol_df.volume)
-    wquants = weighted_quantile(price_vol_df.price, price_vol_df.volume)
+    price_vwap = stats.weighted_mean(price_vol_df.price, price_vol_df.volume)
+    wquants = stats.weighted_quantile(price_vol_df.price, price_vol_df.volume)
     new_bar = {
         'bar_trigger': state['stat']['bar_trigger'],
         'open_at': state['trades']['nyc_dt'][0],

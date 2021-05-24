@@ -40,8 +40,12 @@ def list_symbol_dates(symbol: str, tick_type: str) -> str:
 
 
 def list_symbols(tick_type: str) -> str:
-    paths = s3fs.ls(path=DATA_S3_PATH + f"/{tick_type}/", refresh=True)
+    paths = s3fs.ls(path=DATA_S3_PATH + tick_type, refresh=True)
     return [path.split('symbol=')[1] for path in paths]
+
+
+def list_path(full_s3_path: str) -> str:
+    return s3fs.ls(path=full_s3_path, refresh=True)
 
 
 def remove_symbol(symbol: str, tick_type: str):
@@ -82,8 +86,8 @@ def put_df_to_s3(df: pd.DataFrame, s3_file_path: str):
         s3fs.put(tmp_ref1.name, DATA_S3_PATH + f"/{s3_file_path}/data.feather")
 
 
-def put_file(file_path: str, file_name: str, s3_file_path: str):
-    s3fs.put(file_path + file_path, DATA_S3_PATH + f"/{s3_file_path}/" + file_name)
+def put_file_path(local_file_path: str, s3_file_path: str):
+    s3fs.put(local_file_path, DATA_S3_PATH + f"/{s3_file_path}/")
 
 
 def get_and_save_date_df(symbol: str, date: str, tick_type: str) -> pd.DataFrame:

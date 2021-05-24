@@ -1,6 +1,6 @@
 from pathlib import Path
 import pandas as pd
-from utilities.globals import DATA_LOCAL_PATH
+from utilities.globals_unsafe import DATA_LOCAL_PATH
 
 
 def get_open_market_dates(start_date: str, end_date: str) -> list:

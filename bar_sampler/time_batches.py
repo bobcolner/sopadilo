@@ -1,11 +1,9 @@
 import datetime as dt
 import pandas as pd
+from utilities import stats
 
 
 def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
-
-    def weighted_mean(values: pd.Series, weights: pd.Series) -> pd.Series:
-        return (values * weights).sum() / weights.sum()
 
     date = tdf['nyc_dt'].dt.date[0].isoformat()
     dr = pd.date_range(
@@ -16,8 +14,7 @@ def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
         closed=None,
         )
     batches = []
-    # from tqdm import tqdm
-    # for i in tqdm(list(range(len(dr)-1))):
+
     for i in list(range(len(dr)-1)):        
         tick_batch = tdf.loc[(tdf['nyc_dt'] >= dr[i]) & (tdf['nyc_dt'] < dr[i+1])]
         batch = {}
@@ -33,8 +30,8 @@ def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
             batch['price_low'] = tick_batch.price.values[0]
             batch['price_range'] = 0
         elif batch['tick_count'] > 1 :
-            batch['price'] = weighted_mean(values=tick_batch.price, weights=tick_batch.volume)
-            batch['price_jma'] = weighted_mean(values=tick_batch.price_jma, weights=tick_batch.volume)
+            batch['price'] = stats.weighted_mean(values=tick_batch.price, weights=tick_batch.volume)
+            batch['price_jma'] = stats.weighted_mean(values=tick_batch.price_jma, weights=tick_batch.volume)
             batch['price_high'] = tick_batch.price.max()
             batch['price_low'] = tick_batch.price.min()
             batch['price_range'] = batch['price_high'] - batch['price_low']
