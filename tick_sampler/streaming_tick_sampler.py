@@ -182,17 +182,17 @@ class StreamingTickSampler:
     def __init__(self, thresh: dict):
         self.state = reset_state(thresh)
         self.bars = []
-        self.tick_counter = 0
+        self.update_counter = 0
 
 
     def update(self, close_at: Timestamp, price: float, volume: int, side: int, price_jma: float,
          price_high: float=None, price_low: float=None, tick_count: int=1):
 
-        self.tick_counter = 0
+        self.update_counter =+ 1
         self.state, self.bars = update_bar_state(self.state, self.bars, 
             close_at, price, volume, side, price_jma, price_high, price_low, tick_count)
 
 
     def batch_update(self, ticks_df: pd.DataFrame):
         for tick in ticks_df.itertuples():
-            self.update(next_tick=tick)
+            self.update(close_at=tick.nyc_dt, price=tick.price, volume=tick.volume, side=tick.side, price_jma=tick.price_jma)

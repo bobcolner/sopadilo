@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
 from filters import mad, jma, tick_rule
-from tick_sampler import streaming_tick_sampler
+
 
 class StreamingTickFilter:
 
@@ -16,21 +16,21 @@ class StreamingTickFilter:
             )
         self.jma_filter = jma.JMAFilter(winlen=thresh['jma_winlen'], power=thresh['jma_power'])
         self.tick_rule = tick_rule.TickRule()
-        self.bar_sampler = streaming_tick_sampler.StreamingTickSampler(thresh)
         self.update_counter = 0
         self.ticks = []
 
 
     def update(self, price: float, volume: int, sip_dt: Timestamp, exchange_dt: Timestamp, conditions: np.ndarray) -> tuple:
 
+        self.update_counter += 1        
+        self.mad_filter.update(next_value=price)  # update mad filter
         tick = {
             'price': price,
             'volume': volume,
             'nyc_dt': sip_dt.tz_localize('UTC').tz_convert('America/New_York'),
             'status': 'raw',
+            'mad': self.mad_filter.mad[-1],
             }
-        self.update_counter += 1
-        self.mad_filter.update(next_value=price)  # update mad filter
 
         if volume < 1:  # zero volume/size tick
             tick['status'] = 'filtered: zero volume'
@@ -56,3 +56,9 @@ class StreamingTickFilter:
                 tick['status'] = 'clean: market-open'
 
         self.ticks.append(tick)
+
+
+    def batch_update(self, ticks_df: pd.DataFrame):
+        for tick in ticks_df.itertuples():
+            self.update(sip_dt=tick.sip_dt, exchange_dt=tick.exchange_dt,
+                price=tick.price, volume=tick.volume, conditions=tick.conditions)

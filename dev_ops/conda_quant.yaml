@@ -54,6 +54,7 @@ dependencies:
     # - fracdiff
     - pandas-bokeh
     # - finplot
+    # - hvplot
     # - yellowbrick
     - 'ray[tune]'
     - tune-sklearn

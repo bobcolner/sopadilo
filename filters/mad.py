@@ -2,27 +2,6 @@ import numpy as np
 import pandas as pd
 
 
-def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, deviation_winlen: int,
-    k: int, center: bool=False, diff_type: str='simple') -> pd.DataFrame:
-    
-    df = df.copy()
-    df[col+'_median'] = df[col].rolling(value_winlen, min_periods=value_winlen, center=center).median()
-    if diff_type == 'simple':
-        df[col+'_median_diff'] = abs(df[col] - df[col+'_median'])
-    elif diff_type == 'pct':
-        df[col+'_median_diff'] = abs((df[col] - df[col+'_median']) / df[col+'_median']) * 100
-
-    df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(deviation_winlen, min_periods=(value_winlen * 3), center=False).median()
-
-    diff_min, diff_max = get_diff_minmax(diff_type)
-
-    df.loc[df[col+'_median_diff_median'] < diff_min, col+'_median_diff_median'] = diff_min  # enforce min bound
-    df.loc[df[col+'_median_diff_median'] > diff_max, col+'_median_diff_median'] = diff_max  # enforce max bound
-    df['mad_outlier'] = df[col+'_median_diff'] > (df[col+'_median_diff_median'] * k)  # outlier check 
-
-    return df
-
-
 class MADFilter:
     
     def __init__(self, value_winlen: int=22, deviation_winlen: int=1111, k: int=11):
@@ -31,6 +10,7 @@ class MADFilter:
         self.k = k
         self.values = []
         self.deviations = []
+        self.mad = []
         self.status = 'mad_warmup'
 
     def update(self, next_value) -> float:
@@ -50,6 +30,7 @@ class MADFilter:
         diff_min, diff_max = get_diff_minmax(diff_type='simple')
         self.deviations_median = diff_min if self.deviations_median < diff_min else self.deviations_median  # enforce lower limit
         self.deviations_median = diff_max if self.deviations_median > diff_max else self.deviations_median  # enforce upper limit
+        self.mad.append(self.deviations_median)
         # final tick status logic
         if len(self.deviations) < (self.value_winlen * 3):
             self.status = 'mad_warmup'
@@ -62,10 +43,33 @@ class MADFilter:
 
 
 def get_diff_minmax(diff_type: str='simple') -> tuple:
+
     if diff_type == 'simple':
         diff_min = 0.0025
         diff_max = 0.05
     elif diff_type == 'pct':
         diff_min = 0.001
         diff_max = 0.03
+
     return diff_min, diff_max
+
+
+def mad_filter_df(df: pd.DataFrame, col: str, value_winlen: int, deviation_winlen: int,
+    k: int, center: bool=False, diff_type: str='simple') -> pd.DataFrame:
+    
+    df = df.copy()
+    df[col+'_median'] = df[col].rolling(value_winlen, min_periods=value_winlen, center=center).median()
+    if diff_type == 'simple':
+        df[col+'_median_diff'] = abs(df[col] - df[col+'_median'])
+    elif diff_type == 'pct':
+        df[col+'_median_diff'] = abs((df[col] - df[col+'_median']) / df[col+'_median']) * 100
+
+    df[col+'_median_diff_median'] = df[col+'_median_diff'].rolling(deviation_winlen, min_periods=(value_winlen * 3), center=False).median()
+
+    diff_min, diff_max = get_diff_minmax(diff_type)
+
+    df.loc[df[col+'_median_diff_median'] < diff_min, col+'_median_diff_median'] = diff_min  # enforce min bound
+    df.loc[df[col+'_median_diff_median'] > diff_max, col+'_median_diff_median'] = diff_max  # enforce max bound
+    df['mad_outlier'] = df[col+'_median_diff'] > (df[col+'_median_diff_median'] * k)  # outlier check 
+
+    return df

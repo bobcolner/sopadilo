@@ -23,8 +23,8 @@ def get_s3fs_client(cached: bool=False):
     else:
         from s3fs import S3FileSystem
         s3fs = S3FileSystem(
-                key=B2_ACCESS_KEY_ID, 
-                secret=B2_SECRET_ACCESS_KEY, 
+                key=B2_ACCESS_KEY_ID,
+                secret=B2_SECRET_ACCESS_KEY,
                 client_kwargs={'endpoint_url': B2_ENDPOINT_URL}
             )
 

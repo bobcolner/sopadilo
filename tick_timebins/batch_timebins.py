@@ -3,7 +3,7 @@ import pandas as pd
 from utilities import stats
 
 
-def get_batches(tdf: pd.DataFrame, freq: str='3s') -> list:
+def get_timebins(tdf: pd.DataFrame, freq: str='3s') -> list:
 
     date = tdf['nyc_dt'].dt.date[0].isoformat()
     dr = pd.date_range(
