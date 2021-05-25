@@ -4,7 +4,7 @@ import pandas as pd
 
 class MADFilter:
     
-    def __init__(self, value_winlen: int=22, deviation_winlen: int=1111, k: int=11):
+    def __init__(self, value_winlen: int, deviation_winlen: int, k: int):
         self.value_winlen = value_winlen
         self.deviation_winlen = deviation_winlen
         self.k = k
@@ -32,7 +32,7 @@ class MADFilter:
         self.deviations_median = diff_max if self.deviations_median > diff_max else self.deviations_median  # enforce upper limit
         self.mad.append(self.deviations_median)
         # final tick status logic
-        if len(self.deviations) < (self.value_winlen * 3):
+        if len(self.deviations) < (self.value_winlen):
             self.status = 'mad_warmup'
         elif self.abs_diff > (self.deviations_median * self.k):
             self.status = 'mad_outlier'

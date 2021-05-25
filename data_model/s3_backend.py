@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 from pathlib import Path
 import pandas as pd
 from data_api import polygon_df
+from utilities import pickle
 from utilities.globals_unsafe import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
 
 
@@ -44,8 +45,8 @@ def list_symbols(tick_type: str) -> str:
     return [path.split('symbol=')[1] for path in paths]
 
 
-def list_path(full_s3_path: str) -> str:
-    return s3fs.ls(path=full_s3_path, refresh=True)
+def list_path(s3_path: str) -> str:
+    return s3fs.ls(path=DATA_S3_PATH + s3_path, refresh=True)
 
 
 def remove_symbol(symbol: str, tick_type: str):
@@ -93,6 +94,12 @@ def put_df_to_s3(df: pd.DataFrame, s3_file_path: str):
     with NamedTemporaryFile(mode='w+b') as tmp_ref1:
         df.to_feather(path=tmp_ref1.name, version=2)
         s3fs.put(tmp_ref1.name, DATA_S3_PATH + f"/{s3_file_path}/data.feather")
+
+
+def put_pickle_to_s3(obj, s3_path: str):
+    with NamedTemporaryFile(mode='w+b') as tmp_ref1:
+        pickle.pickle_dump(object=obj, file_name=tmp_ref1.name)
+        s3fs.put(tmp_ref1.name, DATA_S3_PATH + f"/{s3_path}/object.pickle")
 
 
 def put_file_path(local_file_path: str, s3_file_path: str):

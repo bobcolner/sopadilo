@@ -5,7 +5,7 @@ import pandas as pd
 
 class JMAFilter:
     
-    def __init__(self, winlen: int=10, power: int=1, phase: float=0.0):
+    def __init__(self, winlen: int, power: int=1, phase: float=0.0):
         self.state = None
         self.winlen = winlen
         self.power = power
