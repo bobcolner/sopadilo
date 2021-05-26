@@ -1,3 +1,4 @@
+import datetime as dt
 from pathlib import Path
 import pandas as pd
 from utilities.globals_unsafe import DATA_LOCAL_PATH
@@ -26,7 +27,6 @@ def list_dates_from_path(symbol: str, tick_type: str) -> list:
 
 
 def find_remaining_dates(request_dates: str, existing_dates: str) -> list:
-    from datetime import date
     existing_dates_set = set(existing_dates)
-    remaining_dates = [x for x in request_dates if x not in existing_dates_set and x <= date.today().isoformat()]
+    remaining_dates = [x for x in request_dates if x not in existing_dates_set and x <= dt.date.today().isoformat()]
     return remaining_dates

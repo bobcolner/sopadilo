@@ -4,7 +4,7 @@ from pyarrow._dataset import FileSystemDataset
 from utilities.globals_unsafe import DATA_LOCAL_PATH, DATA_S3_PATH, B2_ACCESS_KEY_ID, B2_SECRET_ACCESS_KEY, B2_ENDPOINT_URL
 
 
-def get_local_dataset(tick_type: str, symbol: str=None) -> FileSystemDataset:
+def get_local_dataset(tick_type: str, symbol: str=None, schema=None) -> FileSystemDataset:
 
     full_path = DATA_LOCAL_PATH + f"/{tick_type}/"
     if symbol:
@@ -13,12 +13,13 @@ def get_local_dataset(tick_type: str, symbol: str=None) -> FileSystemDataset:
         source=full_path,
         format='feather',
         partitioning='hive',
+        schema=schema,
         exclude_invalid_files=True
     )
     return ds
 
 
-def get_s3_dataset(symbol: str, tick_type: str) -> FileSystemDataset:
+def get_s3_dataset(symbol: str, tick_type: str, schema=None) -> FileSystemDataset:
     from pyarrow.fs import S3FileSystem
     s3  = S3FileSystem(
         access_key=B2_ACCESS_KEY_ID,
@@ -29,6 +30,7 @@ def get_s3_dataset(symbol: str, tick_type: str) -> FileSystemDataset:
         source=DATA_S3_PATH + f"/{tick_type}/symbol={symbol}/",
         format='feather',
         filesystem=s3,
+        schema=schema,
         partitioning='hive',
         exclude_invalid_files=True
     )
@@ -43,4 +45,5 @@ def get_dates_df(symbol: str, tick_type: str, start_date: str, end_date: str, so
         ds = get_s3_dataset(tick_type=tick_type, symbol=symbol)
     
     filter_exp = (field('date') >= start_date) & (field('date') <= end_date)
-    return ds.to_table(filter=filter_exp).to_pandas()
+    # return ds.to_table(filter=filter_exp).to_pandas()
+    return ds

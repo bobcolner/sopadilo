@@ -22,4 +22,5 @@ def get_symbol_stats(symbol: str, start_date: str,
     df.loc[:, 'price_close_lag'] = df['close'].shift(1)
     df = jma.jma_filter_df(df, col='vwap', winlen=7, power=1)
     df.loc[:, 'vwap_jma_lag'] = df['vwap_jma'].shift(1)
+
     return df.dropna().reset_index(drop=True)
