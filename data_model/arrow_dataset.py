@@ -45,5 +45,5 @@ def get_dates_df(symbol: str, tick_type: str, start_date: str, end_date: str, so
         ds = get_s3_dataset(tick_type=tick_type, symbol=symbol)
     
     filter_exp = (field('date') >= start_date) & (field('date') <= end_date)
-    # return ds.to_table(filter=filter_exp).to_pandas()
-    return ds
+
+    return ds.to_table(filter=filter_exp).to_pandas()
