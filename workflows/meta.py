@@ -5,26 +5,27 @@ import ray
 from data_model import db
 from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, labels, daily_stats
-from utilities import dates
+from utilities import date_fu
 
 
-def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:
-    
+
+def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:    
     # find open market dates
-    # ...
+    requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
     # avialiable tick backfill dates
-    symbol_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/data/trades')
-    symbol_dates_dt = pd.to_datetime(symbol_dates)
+    backfilled_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/data/trades')
     # requested+avialiable tick dates
-    req_avb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt >= config['meta']['start_date']) &
-        (symbol_dates_dt <= config['meta']['end_date'])])
-    # requested+unavialiable dates
-    req_unavb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt < config['meta']['start_date']) |
-        (symbol_dates_dt > config['meta']['end_date'])])
+    requested_backfilled_dates = list(set(backfilled_dates).intersection(requested_open_dates))
     # existing dates from results store
-    existing_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/sampler_v1/bars')
-    # get unfinished 'remaining' dates from list of requested+avialiable dates
-    remaining_dates = dates.find_remaining_dates(request_dates=req_avb_dt, existing_dates=existing_dates)
+    existing_config_dates = db.list_symbol_dates(
+        symbol=config['meta']['symbol'],
+        prefix=f"/samples/{config['meta']['config_id']}/bar_date/"
+        )
+    # remaining, requested, aviable, dates
+    final_remaining_dates = date_fu.find_remaining_dates(
+        request_dates=requested_backfilled_dates,
+        existing_dates=existing_config_dates,
+        )
     # get daily stats for symbol (for dynamic sampling)
     daily_stats_df = daily_stats.get_symbol_stats(
         config['meta']['symbol'],
@@ -34,32 +35,31 @@ def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:
         )
     if ray_on:
         sample_date_ray = ray.remote(sample_date)
-        futures = []
 
-    for date in remaining_dates:
+    bar_date = []
+    for row in daily_stats_df.itertuples():
         if 'range_jma_lag' in daily_stats_df.columns:
             # update sampling renko_size based on recent daily range/volitility (and %value constraints)
-            range_jma_lag = daily_stats_df.loc[daily_stats_df['date'] == date]['range_jma_lag'].values[0]
-            vwap_jma_lag = daily_stats_df.loc[daily_stats_df['date'] == date]['vwap_jma_lag'].values[0]
-            rs = max(range_jma_lag / config['sampler']['renko_range_frac'],
-                    vwap_jma_lag * (config['sampler']['renko_range_min_pct_value'] / 100))  # force min
-            rs = min(rs, vwap_jma_lag * 0.005)  # enforce max
+            rs = max(row.range_jma_lag / config['sampler']['renko_range_frac'],
+                    row.vwap_jma_lag * (config['sampler']['renko_range_min_pct_value'] / 100))  # force min
+            rs = min(rs, row.vwap_jma_lag * 0.005)  # enforce max
             config['sampler'].update({'renko_size': rs})
 
         # sample ticks and store output in s3/b2
         if ray_on:
-            bar_date = sample_date_ray.remote(config, date, save_output=True)
-            futures.append(bar_date)
+            bar_date = sample_date_ray.remote(config, row.date, save_output=True)
         else:
-            sample_date(config, date, save_output=True)
+            bar_date = sample_date(config, row.date, save_output=True)
+
+        bar_date.append(bar_date)
 
     if ray_on:
-        ray.get(futures)  # wait until work is finished
+        ray.get(bar_date)  # wait until distrbuited work is finished
 
-    return True
+    return bar_date
 
 
-def sample_date(config: dict, date: str, save_output: bool=False):
+def sample_date(config: dict, date: str, save_output: bool=False) -> dict:
 
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
@@ -109,25 +109,25 @@ def sample_date(config: dict, date: str, save_output: bool=False):
         }
 
     if save_output:
-        presist_output(bar_date, config)
+        presist_output(bar_date, date)
 
     return bar_date
 
 
-def presist_output(bar_date: dict, config: dict):
+def presist_output(bar_date: dict, date: str):
     # save bars_df
     db.write_df_to_fs(
         df=bar_date['bars_df'], 
-        symbol=config['meta']['symbol'], 
+        symbol=bar_date['config']['meta']['symbol'], 
         date=date, 
-        prefix='/sample_results/v1',
+        prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bars_df/",
         )
     # drop dataframes
     del bar_date['bars_df']
     del bar_date['ticks_df']
     # save full results
     db.write_sdpickle(
-        symbol=config['meta']['symbol'],
+        symbol=bar_date['config']['meta']['symbol'],
         date=date, 
-        prefix='/sample_results/v1'
+        prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bar_date/",
         )

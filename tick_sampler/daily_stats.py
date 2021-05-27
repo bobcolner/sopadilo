@@ -24,7 +24,7 @@ def get_symbol_stats(symbol: str, start_date: str,
     df = jma.jma_filter_df(df, col='range', winlen=5, power=1)
     df.loc[:, 'range_jma_lag'] = df['range_jma'].shift(1)
     # recent price/value metric
-    df.loc[:, 'price_close_lag'] = df['close'].shift(1)
+    df.loc[:, 'close_lag'] = df['close'].shift(1)
     df = jma.jma_filter_df(df, col='vwap', winlen=7, power=1)
     df.loc[:, 'vwap_jma_lag'] = df['vwap_jma'].shift(1)
 

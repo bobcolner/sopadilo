@@ -8,7 +8,6 @@ from utilities import easy_pickle, globals_unsafe as g
 def get_fsspec_fs(fs_type: str) -> fsspec.filesystem:
 
     if fs_type == 's3_cached':
-        # https://filesystem-spec.readthedocs.io/
         fs = fsspec.filesystem(
             protocol='filecache',
             target_protocol='s3',
@@ -68,7 +67,7 @@ def read_pickle_from_fs(fs_path: str) -> object:
     return pickle.load(byte_data)
 
 
-def write_pickle_to_fs(obj, fs_path: str):
+def write_pickle_to_fs(obj: object, fs_path: str):
     with NamedTemporaryFile(mode='w+b') as tmp_ref1:
         pickle.file_dump(object=obj, file_name=tmp_ref1.name)
         fs.put_file(tmp_ref1.name, ROOT_PATH + f"{fs_path}/object.pickle")
