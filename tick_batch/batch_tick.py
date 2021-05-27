@@ -1,6 +1,6 @@
 import pandas as pd
 from filters import mad, jma, tick_rule
-from data_model import arrow_dataset, s3_backend
+from data_model import arrow_dataset, fsspec_backend
 from tick_timebins import batch_timebins
 from tick_sampler import streaming_tick_sampler, labels
 
@@ -57,7 +57,7 @@ def enrich_tick(tdf: pd.DataFrame) -> pd.DataFrame:
 
 def sample_date_batch(thresh: dict, date: str) -> dict:
     # get raw ticks (all trades)
-    tdf_v1 = s3_backend.fetch_date_df(thresh['meta']['symbol'], date=date, tick_type='trades')
+    tdf_v1 = fsspec_backend.fetch_date_df(thresh['meta']['symbol'], date=date, tick_type='trades')
     # MAD filter ticks (all trades)
     tdf_v2 = batch_tick_filer.filter_trades(tdf_v1,
         thresh['filter']['mad_value_winlen'],

@@ -4,7 +4,7 @@ from prefect import Flow, Parameter, task, unmapped
 from prefect.executors import DaskExecutor, LocalExecutor
 
 from utilities.dates import get_open_market_dates, find_remaining_dates
-from data_model.s3_backend import list_symbol_dates, get_and_save_date_df
+from data_model.fsspec_backend import list_symbol_dates, get_and_save_date_df
 
 
 @task(max_retries=2, retry_delay=timedelta(seconds=2))

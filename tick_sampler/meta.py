@@ -1,22 +1,27 @@
 import datetime as dt
 import pandas as pd
 from tqdm import tqdm
-from data_model import arrow_dataset, s3_backend
+import ray
+from data_model import fsspec_backend
 from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, labels, daily_stats
 
 
-def tick_sampler_workflow(config: dict, start_date: str, end_date: str):
-
-    # avialiable tick dates
-    symbol_dates = s3_backend.list_symbol_dates(symbol=config['meta']['symbol'], tick_type='trades')
+def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:
+    
+    # find open market dates
+    ...
+    # avialiable tick backfill dates
+    symbol_dates = fsspec_backend.list_symbol_dates(symbol=config['meta']['symbol'], tick_type='trades')
     symbol_dates_dt = pd.to_datetime(symbol_dates)
     # requested+avialiable tick dates
-    req_avb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt >= start_date) & (symbol_dates_dt <= end_date)])
+    req_avb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt >= config['meta']['start_date']) &
+        (symbol_dates_dt <= config['meta']['end_date'])])
     # requested+unavialiable dates
-    req_unavb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt < start_date) | (symbol_dates_dt > end_date)])
+    req_unavb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt < config['meta']['start_date']) |
+        (symbol_dates_dt > config['meta']['end_date'])])
     # existing dates from results store
-    existing_dates = s3_backend.ls('polygon-equities/data/samples/test1')
+    existing_dates = fsspec_backend.ls('polygon-equities/data/samples/test1')
     # get unfinished 'remaining' dates from list of requested+avialiable dates
     remaining_dates = find_remaining_dates(request_dates=req_avb_dt, existing_dates=existing_dates)
     # get daily stats for symbol (for dynamic sampling)
@@ -45,12 +50,7 @@ def tick_sampler_workflow(config: dict, start_date: str, end_date: str):
     if ray_on:
         ray.get(date_futures)
 
-
-
-def presist_output(bar_date: dict, config: dict):
-    del bar_date['ticks_df']
-    file_path_end = f"tick_samples/{config['meta']['config_id']}/symbol={config['meta']['symbol']}/date={date}/"
-    put_pickle_to_s3(obj=bar_date, s3_path=file_path_end)
+    return True
 
 
 def sample_date(config: dict, date: str, save_output: bool=False):
@@ -58,7 +58,7 @@ def sample_date(config: dict, date: str, save_output: bool=False):
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
     # get raw trades
-    tdf = s3_backend.fetch_date_df(symbol=config['meta']['symbol'], date=date, tick_type='trades')
+    tdf = fsspec_backend.fetch_date_df(symbol=config['meta']['symbol'], date=date, tick_type='trades')
     for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=True):
         # filter/enrich tick
         tick_filter.update(
@@ -72,8 +72,6 @@ def sample_date(config: dict, date: str, save_output: bool=False):
         ftick = tick_filter.ticks[-1]
         # sample 'clean' ticks
         if ftick['status'] == 'clean: market-open':
-            # timebin [todo]
-            # ...
             # sample ticks as bars
             tick_sampler.update(
                 close_at=ftick['nyc_dt'],
@@ -82,7 +80,6 @@ def sample_date(config: dict, date: str, save_output: bool=False):
                 side=ftick['side'],
                 price_jma=ftick['price_jma']
             )
-
     # get processed ticks
     tdf = pd.DataFrame(tick_filter.ticks)
     # label bars
@@ -109,3 +106,10 @@ def sample_date(config: dict, date: str, save_output: bool=False):
         presist_output(bar_date, config)
 
     return bar_date
+
+
+def presist_output(bar_date: dict, config: dict):
+    del bar_date['ticks_df']
+    del bar_date['bars_df']
+    file_path_end = f"tick_samples/{config['meta']['config_id']}/symbol={config['meta']['symbol']}/date={date}/"
+    fsspec_backend.pickle_and_put_to_s3(obj=bar_date, s3_path=file_path_end)

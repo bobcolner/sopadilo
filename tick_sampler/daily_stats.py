@@ -1,7 +1,7 @@
 import datetime as dt
 import pandas as pd
 from filters import jma
-from data_model import arrow_dataset, s3_backend
+from data_model import arrow_dataset, fsspec_backend
 
 
 def get_symbol_stats(symbol: str, start_date: str,

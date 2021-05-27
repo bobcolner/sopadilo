@@ -1,7 +1,7 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
-from data_model import arrow_dataset, s3_backend
+from data_model import arrow_dataset, fsspec_backend
 from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, stacked, meta, meta_ray
 from utilities import pickle

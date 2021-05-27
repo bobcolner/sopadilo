@@ -20,6 +20,7 @@ def get_local_dataset(tick_type: str, symbol: str=None, schema=None) -> FileSyst
 
 
 def get_s3_dataset(symbol: str, tick_type: str, schema=None) -> FileSystemDataset:
+
     from pyarrow.fs import S3FileSystem
     s3  = S3FileSystem(
         access_key=B2_ACCESS_KEY_ID,
