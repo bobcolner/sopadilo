@@ -1,7 +1,7 @@
 import datetime as dt
 import pandas as pd
 from filters import jma
-from data_model import arrow_dataset, fsspec_backend
+from data_model import db
 
 
 def get_symbol_stats(symbol: str, start_date: str,
@@ -11,8 +11,13 @@ def get_symbol_stats(symbol: str, start_date: str,
     # get exta 10 days
     adj_start_date = (dt.datetime.fromisoformat(start_date) - dt.timedelta(days=10)).date().isoformat()
     # get market daily from pyarrow dataset
-    df = arrow_dataset.get_dates_df(symbol='market', tick_type='daily', start_date=adj_start_date,
-                                    end_date=end_date, source=source)
+    df = db.get_market_daily_df(
+        symbol='market',
+        start_date=adj_start_date,
+        end_date=end_date,
+        prefix='/data/daily',
+        source=source
+        )
     df = df.loc[df['symbol'] == symbol].reset_index(drop=True)
     # range/volitiliry metric
     df.loc[:, 'range'] = df['high'] - df['low']

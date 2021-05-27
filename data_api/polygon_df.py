@@ -1,6 +1,6 @@
 import pandas as pd
-from data_api.polygon_rest import get_market_date, get_stocks_ticks_date, get_ticker_details
- 
+from data_api import polygon_rest
+
 
 def market_daily_to_df(daily: list) -> pd.DataFrame: 
     df = pd.DataFrame(daily, columns=['T', 'v', 'o', 'c', 'h', 'l', 'vw', 't'])
@@ -98,13 +98,13 @@ def validate_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_ticks_date_df(symbol: str, date: str, tick_type: str='trades') -> pd.DataFrame:
-    ticks = get_stocks_ticks_date(symbol, date, tick_type)
+    ticks = polygon_rest.get_stocks_ticks_date(symbol, date, tick_type)
     df = ticks_to_df(ticks, tick_type)
     return validate_df(df)
 
 
 def get_market_date_df(date: str) -> pd.DataFrame:
-    daily = get_market_date(locale='us', market='stocks', date=date)
+    daily = polygon_rest.get_market_date(locale='us', market='stocks', date=date)
     if len(daily) == 0:
         raise ValueError('get_market_date returned zero rows')
 
@@ -123,7 +123,7 @@ def get_symbol_details_df(symbols: list) -> pd.DataFrame:
     results = []
     for symbol in symbols:
         print(symbol)
-        dets = get_ticker_details(symbol)
+        dets = polygon_rest.get_ticker_details(symbol)
         if dets:
             results.append(dets)
     results = [i for i in results if i]  # remove empty/null items from list

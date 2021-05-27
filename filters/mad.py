@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+# https://towardsdatascience.com/outlier-detection-with-hampel-filter-85ddf523c73d
 
 
 class MADFilter:

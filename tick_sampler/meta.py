@@ -2,17 +2,18 @@ import datetime as dt
 import pandas as pd
 from tqdm import tqdm
 import ray
-from data_model import fsspec_backend
+from data_model import db
 from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, labels, daily_stats
+from utilities import dates
 
 
 def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:
     
     # find open market dates
-    ...
+    # ...
     # avialiable tick backfill dates
-    symbol_dates = fsspec_backend.list_symbol_dates(symbol=config['meta']['symbol'], tick_type='trades')
+    symbol_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/data/trades')
     symbol_dates_dt = pd.to_datetime(symbol_dates)
     # requested+avialiable tick dates
     req_avb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt >= config['meta']['start_date']) &
@@ -21,14 +22,19 @@ def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:
     req_unavb_dt = pd.DataFrame(symbol_dates_dt[(symbol_dates_dt < config['meta']['start_date']) |
         (symbol_dates_dt > config['meta']['end_date'])])
     # existing dates from results store
-    existing_dates = fsspec_backend.ls('polygon-equities/data/samples/test1')
+    existing_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/sampler_v1/bars')
     # get unfinished 'remaining' dates from list of requested+avialiable dates
-    remaining_dates = find_remaining_dates(request_dates=req_avb_dt, existing_dates=existing_dates)
+    remaining_dates = dates.find_remaining_dates(request_dates=req_avb_dt, existing_dates=existing_dates)
     # get daily stats for symbol (for dynamic sampling)
-    daily_stats_df = daily_stats.get_symbol_stats(config['meta']['symbol'], config['meta']['start_date'], config['meta']['end_date'])
+    daily_stats_df = daily_stats.get_symbol_stats(
+        config['meta']['symbol'],
+        config['meta']['start_date'],
+        config['meta']['end_date'],
+        source='local',
+        )
     if ray_on:
         sample_date_ray = ray.remote(sample_date)
-        date_futures = []
+        futures = []
 
     for date in remaining_dates:
         if 'range_jma_lag' in daily_stats_df.columns:
@@ -43,12 +49,12 @@ def tick_sampler_workflow(config: dict, ray_on: bool=False) -> bool:
         # sample ticks and store output in s3/b2
         if ray_on:
             bar_date = sample_date_ray.remote(config, date, save_output=True)
-            date_futures.append(bar_date)
+            futures.append(bar_date)
         else:
             sample_date(config, date, save_output=True)
 
     if ray_on:
-        ray.get(date_futures)
+        ray.get(futures)  # wait until work is finished
 
     return True
 
@@ -58,7 +64,7 @@ def sample_date(config: dict, date: str, save_output: bool=False):
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
     # get raw trades
-    tdf = fsspec_backend.fetch_date_df(symbol=config['meta']['symbol'], date=date, tick_type='trades')
+    tdf = db.read_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
     for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=True):
         # filter/enrich tick
         tick_filter.update(
@@ -66,7 +72,7 @@ def sample_date(config: dict, date: str, save_output: bool=False):
             volume=tick.size,
             sip_dt=tick.sip_dt,
             exchange_dt=tick.exchange_dt,
-            conditions=tick.conditions
+            conditions=tick.conditions,
         )
         # get current 'filtered' tick
         ftick = tick_filter.ticks[-1]
@@ -78,7 +84,7 @@ def sample_date(config: dict, date: str, save_output: bool=False):
                 price=ftick['price'],
                 volume=ftick['volume'],
                 side=ftick['side'],
-                price_jma=ftick['price_jma']
+                price_jma=ftick['price_jma'],
             )
     # get processed ticks
     tdf = pd.DataFrame(tick_filter.ticks)
@@ -109,7 +115,19 @@ def sample_date(config: dict, date: str, save_output: bool=False):
 
 
 def presist_output(bar_date: dict, config: dict):
-    del bar_date['ticks_df']
+    # save bars_df
+    db.write_df_to_fs(
+        df=bar_date['bars_df'], 
+        symbol=config['meta']['symbol'], 
+        date=date, 
+        prefix='/sample_results/v1',
+        )
+    # drop dataframes
     del bar_date['bars_df']
-    file_path_end = f"tick_samples/{config['meta']['config_id']}/symbol={config['meta']['symbol']}/date={date}/"
-    fsspec_backend.pickle_and_put_to_s3(obj=bar_date, s3_path=file_path_end)
+    del bar_date['ticks_df']
+    # save full results
+    db.write_sdpickle(
+        symbol=config['meta']['symbol'],
+        date=date, 
+        prefix='/sample_results/v1'
+        )
