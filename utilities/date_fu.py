@@ -27,7 +27,9 @@ def list_dates_from_local_path(symbol: str, tick_type: str) -> list:
 
 
 def find_remaining_dates(request_dates: list, existing_dates: list) -> list:
-    existing_dates_set = set(existing_dates)
-    remaining_dates = [x for x in request_dates if x not in existing_dates_set and x < dt.date.today().isoformat()]
-    remaining_dates = pd.Series(remaining_dates).sort_values(ascending=True).to_list()  # sort dates
+    # existing_dates_set = set(existing_dates)
+    # today_str = dt.date.today().isoformat()
+    # remaining_dates = [x for x in request_dates if x not in existing_dates_set and x < today_str]
+    # remaining_dates = pd.Series(remaining_dates).sort_values(ascending=True).to_list()  # sort dates
+    remaining_dates = list(set(request_dates).intersection(set(existing_dates)))
     return remaining_dates

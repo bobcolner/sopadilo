@@ -64,12 +64,12 @@ def remove_fs_path(fs_path: str, recursive: bool=False):
 
 def read_pickle_from_fs(fs_path: str) -> object:
     byte_data = fs.cat(ROOT_PATH + fs_path)
-    return pickle.load(byte_data)
+    return easy_pickle.load(byte_data)
 
 
 def write_pickle_to_fs(obj: object, fs_path: str):
     with NamedTemporaryFile(mode='w+b') as tmp_ref1:
-        pickle.file_dump(object=obj, file_name=tmp_ref1.name)
+        easy_pickle.file_dump(obj, file_name=tmp_ref1.name)
         fs.put_file(tmp_ref1.name, ROOT_PATH + f"{fs_path}/object.pickle")
 
 

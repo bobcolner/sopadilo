@@ -5,10 +5,6 @@ from data_model import fsspec_storage as fss, arrow_dataset
 from utilities import globals_unsafe as g
 
 # /{ROOT_PATH}/{prefix}/symbol={symbol}/date={date}
-# prefix e.g. 'data_ingest/polygon/trades', 'data_index/polygon/trades'
-
-fs, ROOT_PATH = fss.get_fsspec_fs(fs_type='s3_cached')
-
 
 def list_symbol_dates(symbol: str, prefix: str) -> str:
     paths = fss.list_fs_path(f"{prefix}/symbol={symbol}")
