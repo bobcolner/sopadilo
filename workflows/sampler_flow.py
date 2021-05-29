@@ -2,9 +2,8 @@ import pandas as pd
 import ray
 from tick_sampler import daily_stats
 from utilities import date_fu
-from data_layer import storage_adaptor
+from data_layer import data_access
 from workflows import sampler_task
-from utilities import globals_unsafe as g
 
 
 def run(config: dict, ray_on: bool=False) -> list:
@@ -17,14 +16,16 @@ def get_dates_from_config(config: dict) -> pd.DataFrame:
     # find open market dates
     requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
     # all avialiable tick backfill dates
-    db = storage_adaptor.StorageAdaptor(fs_type='s3_filecache', root_path=g.DATA_S3_PATH)
-    backfilled_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/data/trades')
+    backfilled_dates = data_access.list_symbol_dates_from_remote(
+        symbol=config['meta']['symbol'],
+        prefix='/data/trades',
+        )
     # requested & avialiable dates
     requested_backfilled_dates = list(set(backfilled_dates).intersection(set(requested_open_dates)))
     # existing dates from results store
-    existing_config_id_dates = db.list_symbol_dates(
+    existing_config_id_dates = data_access.list_symbol_dates_from_remote(
         symbol=config['meta']['symbol'],
-        prefix=f"/tick_samples/{config['meta']['config_id']}/bar_date/"
+        prefix=f"/tick_samples/{config['meta']['config_id']}/bar_date/",
         )
     # remaining, requested, aviable, dates
     final_remaining_dates = list(set(requested_backfilled_dates).difference(set(existing_config_id_dates)))

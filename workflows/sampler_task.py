@@ -1,13 +1,9 @@
 import datetime as dt
 import pandas as pd
 from tqdm import tqdm
-from data_layer import storage_adaptor
+from data_layer import data_access
 from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, labels
-from utilities import globals_unsafe as g
-
-
-db = storage_adaptor.StorageAdaptor(fs_type='s3_filecache', root_path=g.DATA_S3_PATH)
 
 
 def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
@@ -17,7 +13,8 @@ def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
     # get raw trades
-    tdf = db.read_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
+    # tdf = db.read_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
+    tdf = data_access.load_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
     for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=True):
         # filter/enrich tick
         tick_filter.update(
@@ -69,8 +66,8 @@ def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
 def presist_output(bar_date: dict, date: str):
 
     # save bars_df
-    db.write_sdf(
-        sdf=bar_date['bars_df'], 
+    data_access.presist(
+        object=bar_date['bars_df'], 
         symbol=bar_date['config']['meta']['symbol'], 
         date=date, 
         prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bars_df",
@@ -80,9 +77,9 @@ def presist_output(bar_date: dict, date: str):
     del bd['bars_df']
     del bd['ticks_df']
     # save full results
-    db.write_sdpickle(
-        sd_obj=bd,
-        symbol=bd['config']['meta']['symbol'],
-        date=date, 
-        prefix=f"/tick_samples/{bd['config']['meta']['config_id']}/bar_date",
+    data_access.presist(
+        object=bd,
+        symbol=bar_date['config']['meta']['symbol'],
+        date=date,
+        prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bar_date",
         )

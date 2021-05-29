@@ -5,14 +5,15 @@ from pandas._libs.tslibs.timestamps import Timestamp
 from filters import mad, jma, tick_rule
 
 import warnings
-warnings.simplefilter('ignore')
+warnings.simplefilter('ignore')  # annoying nanosceond conversion warning
 
 class StreamingTickFilter:
 
     def __init__(self, mad_value_winlen: int=22, mad_deviation_winlen: int=333, mad_k: int=11,
-                jma_winlen: int=7, jma_power: int=1):
+                jma_winlen: int=7, jma_power: int=1, ts_diff_limit_sec: int=3):
 
         self.irregular_conditions = [2, 5, 7, 10, 13, 15, 16, 20, 21, 22, 29, 33, 38, 52, 53]
+        self.ts_diff_limit_sec = ts_diff_limit_sec
         self.mad_filter = mad.MADFilter(value_winlen=mad_value_winlen, deviation_winlen=mad_deviation_winlen, k=mad_k)
         self.jma_filter = jma.JMAFilter(winlen=jma_winlen, power=jma_power)
         self.tick_rule = tick_rule.TickRule()
@@ -34,7 +35,7 @@ class StreamingTickFilter:
             tick['status'] = 'filtered: zero volume'
         elif pd.Series(conditions).isin(self.irregular_conditions).any():  # 'irrgular' tick condition
             tick['status'] = 'filtered: irregular condition'
-        elif abs(sip_dt - exchange_dt) > pd.to_timedelta(3, unit='S'):  # large ts deltas
+        elif abs(sip_dt - exchange_dt) > pd.to_timedelta(self.ts_diff_limit_sec, unit='S'):  # large ts deltas
             tick['status'] = 'filtered: ts diff'
         elif self.mad_filter.status == 'mad_warmup':
             tick['status'] = 'filtered: mad_warmup'
@@ -57,5 +58,10 @@ class StreamingTickFilter:
 
     def batch_update(self, ticks_df: pd.DataFrame):
         for tick in ticks_df.itertuples():
-            self.update(sip_dt=tick.sip_dt, exchange_dt=tick.exchange_dt,
-                price=tick.price, volume=tick.volume, conditions=tick.conditions)
+            self.update(
+                price=tick.price,
+                volume=tick.volume,
+                sip_dt=tick.sip_dt,
+                exchange_dt=tick.exchange_dt,
+                conditions=tick.conditions,
+            )
