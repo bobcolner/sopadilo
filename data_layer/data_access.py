@@ -1,6 +1,6 @@
 import pandas as pd
 from data_api import polygon_df
-from data_layer import storage_adaptor
+from data_layer import storage_adaptor, arrow_dataset
 from utilities import globals_unsafe as g
 
 
@@ -40,3 +40,13 @@ def fetch_sdf(symbol: str, date: str, prefix: str) -> pd.DataFrame:
             fs_local.write_sdf(sdf, symbol, date, prefix)
 
     return sdf
+
+
+def get_market_daily_df(symbol: str, start_date: str, end_date: str, prefix: str, source: str='local') -> pd.DataFrame:
+    from pyarrow.dataset import field
+
+    ds = arrow_dataset.get_dataset(symbol, prefix, fs=source)
+    filter_exp = (field('date') >= start_date) & (field('date') <= end_date)
+    df = ds.to_table(filter=filter_exp).to_pandas()
+
+    return df

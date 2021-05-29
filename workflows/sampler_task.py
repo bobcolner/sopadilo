@@ -11,12 +11,13 @@ db = storage_adaptor.StorageAdaptor(fs_type='s3_filecache', root_path=g.DATA_S3_
 
 
 def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
+    
+    print('running', config['meta']['symbol'], date)  # logging
 
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
     # get raw trades
     tdf = db.read_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
-
     for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=True):
         # filter/enrich tick
         tick_filter.update(

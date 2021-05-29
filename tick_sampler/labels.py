@@ -121,7 +121,7 @@ def outcomes_to_label(outcomes: pd.DataFrame, label_end_at: Timestamp) -> dict:
 
 def get_concurrent_stats(lbars_df: pd.DataFrame) -> dict:
 
-    # from mlfinlab.sampling.bootstrapping import get_ind_matrix, get_ind_mat_average_uniqueness
+    from mlfinlab.sampling.bootstrapping import get_ind_matrix, get_ind_mat_average_uniqueness
     from mlfinlab.sampling.concurrent import get_av_uniqueness_from_triple_barrier
 
     samples_info_sets = lbars_df[['label_start_at', 'label_outcome_at']]
@@ -130,13 +130,13 @@ def get_concurrent_stats(lbars_df: pd.DataFrame) -> dict:
     price_bars = lbars_df[['open_at', 'close_at', 'price_close']]
     price_bars = price_bars.set_index('close_at')
     label_avg_unq = get_av_uniqueness_from_triple_barrier(samples_info_sets, price_bars, num_threads=1)
-    # ind_mat = get_ind_matrix(samples_info_sets, price_bars)
-    # avg_unq_ind_mat = get_ind_mat_average_uniqueness(ind_mat)
+    ind_mat = get_ind_matrix(samples_info_sets, price_bars)
+    avg_unq_ind_mat = get_ind_mat_average_uniqueness(ind_mat)
     results = {
-        # 'label_avg_unq': label_avg_unq,
+        'label_avg_unq': label_avg_unq,
         'grand_avg_unq': label_avg_unq['tW'].mean(),
-        # 'ind_mat': ind_mat,
-        # 'ind_mat_avg_unq': avg_unq_ind_mat
+        'ind_mat': ind_mat,
+        'ind_mat_avg_unq': avg_unq_ind_mat
     }
     return results
 
@@ -150,8 +150,7 @@ def get_label_ticks(ticks_df: pd.DataFrame, label_start_at: Timestamp, horizon_m
     return label_prices,  label_end_at
 
 
-def label_bars(bars: list, ticks_df: pd.DataFrame, risk_level: float, horizon_mins: int,
-    reward_ratios: list, add_trend_label: bool=False) -> list:
+def label_bars(bars: list, ticks_df: pd.DataFrame, risk_level: float, horizon_mins: int, reward_ratios: list) -> list:
 
     for idx, row in enumerate(bars):
         label_prices, label_end_at = get_label_ticks(ticks_df, label_start_at=row['close_at'], horizon_mins=horizon_mins)
@@ -171,8 +170,5 @@ def label_bars(bars: list, ticks_df: pd.DataFrame, risk_level: float, horizon_mi
             'label_end_at': label_end_at,
             })
         bars[idx].update(label)
-        if add_trend_label:
-            trend = get_trend_outcome(label_prices)
-            bars[idx].update(trend)
 
     return bars

@@ -1,3 +1,4 @@
+import pandas as pd
 from pyarrow.dataset import dataset
 from pyarrow._dataset import FileSystemDataset
 from pyarrow.fs import S3FileSystem
@@ -33,11 +34,3 @@ def get_dataset(symbol: str, prefix: str, fs: str='local', schema=None) -> FileS
         )
 
     return ds
-
-
-def get_market_daily_df(symbol: str, start_date: str, end_date: str, prefix: str, source: str='local') -> pd.DataFrame:
-    from pyarrow.dataset import field
-    ds = get_dataset(symbol, prefix, fs=source)
-    filter_exp = (field('date') >= start_date) & (field('date') <= end_date)
-    df = ds.to_table(filter=filter_exp).to_pandas()
-    return df

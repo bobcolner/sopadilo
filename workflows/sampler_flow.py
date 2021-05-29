@@ -1,3 +1,4 @@
+import pandas as pd
 import ray
 from tick_sampler import daily_stats
 from utilities import date_fu
@@ -6,16 +7,20 @@ from workflows import sampler_task
 from utilities import globals_unsafe as g
 
 
-db = storage_adaptor.StorageAdaptor(fs_type='s3_filecache', root_path=g.DATA_S3_PATH)
+def run(config: dict, ray_on: bool=False) -> list:
+    daily_df = get_dates_from_config(config)
+    print(len(daily_df), 'dates scheduled')
+    return run_sampler_flow(config, daily_df, ray_on)
 
 
-def tick_sampler_flow(config: dict, ray_on: bool=False) -> bool:    
+def get_dates_from_config(config: dict) -> pd.DataFrame:
     # find open market dates
     requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
-    # avialiable tick backfill dates
-    all_backfilled_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/data/trades')
-    # requested+avialiable tick dates
-    requested_backfilled_dates = list(set(all_backfilled_dates).intersection(set(requested_open_dates)))
+    # all avialiable tick backfill dates
+    db = storage_adaptor.StorageAdaptor(fs_type='s3_filecache', root_path=g.DATA_S3_PATH)
+    backfilled_dates = db.list_symbol_dates(symbol=config['meta']['symbol'], prefix='/data/trades')
+    # requested & avialiable dates
+    requested_backfilled_dates = list(set(backfilled_dates).intersection(set(requested_open_dates)))
     # existing dates from results store
     existing_config_id_dates = db.list_symbol_dates(
         symbol=config['meta']['symbol'],
@@ -30,11 +35,18 @@ def tick_sampler_flow(config: dict, ray_on: bool=False) -> bool:
         config['meta']['end_date'],
         source='local',
         )
+
+    return daily_stats_df
+
+
+def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=False):
+
     if ray_on:
         sample_date_ray = ray.remote(sampler_task.sample_date)
 
     results = []
     for row in daily_stats_df.itertuples():
+
         if 'range_jma_lag' in daily_stats_df.columns:
             # update sampling renko_size based on recent daily range/volitility (and %value constraints)
             rs = max(row.range_jma_lag / config['sampler']['renko_range_frac'],
@@ -42,7 +54,7 @@ def tick_sampler_flow(config: dict, ray_on: bool=False) -> bool:
             rs = min(rs, row.vwap_jma_lag * 0.005)  # enforce max
             config['sampler'].update({'renko_size': rs})
 
-        # sample ticks and store output in s3/b2
+        # core distrbuited function: sample ticks and store output in s3/b2
         if ray_on:
             bar_date = sample_date_ray.remote(config, row.date, save_results_flag=True)
         else:

@@ -4,6 +4,8 @@ import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
 from filters import mad, jma, tick_rule
 
+import warnings
+warnings.simplefilter('ignore')
 
 class StreamingTickFilter:
 
