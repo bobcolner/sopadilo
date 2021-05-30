@@ -43,6 +43,7 @@ class StorageAdaptor:
         return pickle.loads(byte_data)
 
     def write_pickle_to_fs(self, obj: object, fs_path: str):
+        # do not include trailing slash in path
         with self.fs.open(self.root_path + f"{fs_path}/object.pickle", 'wb') as fio:
             pickle.dump(obj, file=fio, protocol=4)  # protocol 5 only supported in python 3.8+ and not needed here
 
@@ -51,6 +52,7 @@ class StorageAdaptor:
         return pd.read_feather(BytesIO(byte_data), columns=columns)
 
     def write_df_to_fs(self, df: pd.DataFrame, fs_path: str):
+        # do not include trailing slash in path
         with NamedTemporaryFile(mode='w+b') as tmp_ref1:
             df.to_feather(path=tmp_ref1.name, version=2)
             self.fs.put(lpath=tmp_ref1.name, rpath=self.root_path + f"{fs_path}/data.feather")

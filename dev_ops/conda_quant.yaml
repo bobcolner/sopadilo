@@ -18,8 +18,8 @@ dependencies:
   # - fastcluster
   # - pyclustering
   # - pycaret
-  - pyarrow >= 2.0
-  - pandas >= 1.1
+  - pyarrow >= 4.0
+  - pandas >= 1.2
   - pandas_market_calendars
   # trading_calendars
   - ipython
@@ -68,7 +68,7 @@ dependencies:
     # - ipdb
     - pudb
     - icecream
-    # - 'smart_open[gcs,s3]'
+    # - 'smart_open[gcs s3]'
 
 # jupyter labextension install:
   # @jupyterlab/toc

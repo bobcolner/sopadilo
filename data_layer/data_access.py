@@ -77,3 +77,13 @@ def fetch_polygon_data(symbol: str, date: str, tick_type: str='trades', prefix: 
             fs_local.write_sdf(sdf, symbol, date, prefix=f"{prefix}/{tick_type}")
 
     return sdf
+
+
+def fetch_market_daily(start_date: str, end_date: str) -> pd.DataFrame:
+    try:
+        mdf = fs_local.read_df_from_fs('/data/daily_agg/data.feather')
+    except:
+        mdf = fs_remote.read_df_from_fs('/data/daily_agg/data.feather')
+    
+    mask = (mdf['date'] >= start_date) & (mdf['date'] <= end_date)
+    return mdf[mask]
