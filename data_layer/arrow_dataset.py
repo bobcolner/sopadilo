@@ -5,9 +5,9 @@ from pyarrow.fs import S3FileSystem
 from utilities import globals_unsafe as g
 
 
-def get_dataset(symbol: str, prefix: str, fs: str='local', schema=None) -> FileSystemDataset:
+def get_dataset(symbol: str, prefix: str, fs_type: str='local', schema=None) -> FileSystemDataset:
 
-    if fs == 'local':
+    if fs_type == 'local':
         full_path = g.DATA_LOCAL_PATH + f"/{prefix}/"
         if symbol:
             full_path = full_path + f"symbol={symbol}/"
@@ -18,7 +18,7 @@ def get_dataset(symbol: str, prefix: str, fs: str='local', schema=None) -> FileS
             schema=schema,
             exclude_invalid_files=True
         )
-    elif fs == 's3':
+    elif fs_type.isin(['s3', 'remote']) :
         s3  = S3FileSystem(
             access_key=g.B2_ACCESS_KEY_ID,
             secret_key=g.B2_SECRET_ACCESS_KEY,
@@ -34,3 +34,13 @@ def get_dataset(symbol: str, prefix: str, fs: str='local', schema=None) -> FileS
         )
 
     return ds
+
+
+def get_market_daily_df(symbol: str, start_date: str, end_date: str, prefix: str, source: str='local') -> pd.DataFrame:
+    from pyarrow.dataset import field
+
+    ds = get_dataset(symbol, prefix, fs_type=source)
+    filter_exp = (field('date') >= start_date) & (field('date') <= end_date)
+    df = ds.to_table(filter=filter_exp).to_pandas()
+
+    return df

@@ -56,7 +56,7 @@ dependencies:
     # - finplot
     # - hvplot
     # - yellowbrick
-    - 'ray[tune]'
+    - 'ray[default tune]'
     - tune-sklearn
     # - robustats
     # - skranger

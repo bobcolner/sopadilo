@@ -1,7 +1,7 @@
 import datetime as dt
 import pandas as pd
 from filters import jma
-from data_layer import data_access
+from data_layer import arrow_dataset
 
 
 def get_symbol_stats(symbol: str, start_date: str,
@@ -9,9 +9,9 @@ def get_symbol_stats(symbol: str, start_date: str,
     source: str='local') -> pd.DataFrame:
 
     # get exta 10 days
-    adj_start_date = (dt.datetime.fromisoformat(start_date) - dt.timedelta(days=10)).date().isoformat()
+    adj_start_date = (dt.datetime.fromisoformat(start_date) - dt.timedelta(days=20)).date().isoformat()
     # get market daily from pyarrow dataset
-    df = data_access.get_market_daily_df(
+    df = arrow_dataset.get_market_daily_df(
         symbol='market',
         start_date=adj_start_date,
         end_date=end_date,

@@ -6,16 +6,15 @@ from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, labels
 
 
-def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
+def sample_date(config: dict, date: str, presist_flag: bool=False, progress_bar: bool=True) -> dict:
     
     print('running', config['meta']['symbol'], date)  # logging
 
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
     # get raw trades
-    # tdf = db.read_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
-    tdf = data_access.load_sdf(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
-    for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=True):
+    tdf = data_access.fetch_sd_data(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
+    for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=(not progress_bar)):
         # filter/enrich tick
         tick_filter.update(
             price=tick.price,
@@ -57,7 +56,7 @@ def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
         'bars_df': pd.DataFrame(bars),
         'bars': bars,
         }
-    if save_results_flag:
+    if presist_flag:
         presist_output(bar_date, date)
 
     return bar_date
@@ -66,8 +65,8 @@ def sample_date(config: dict, date: str, save_results_flag: bool=False) -> dict:
 def presist_output(bar_date: dict, date: str):
 
     # save bars_df
-    data_access.presist(
-        object=bar_date['bars_df'], 
+    data_access.presist_sd_data(
+        sd_data=bar_date['bars_df'], 
         symbol=bar_date['config']['meta']['symbol'], 
         date=date, 
         prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bars_df",
@@ -77,8 +76,8 @@ def presist_output(bar_date: dict, date: str):
     del bd['bars_df']
     del bd['ticks_df']
     # save full results
-    data_access.presist(
-        object=bd,
+    data_access.presist_sd_data(
+        sd_data=bd,
         symbol=bar_date['config']['meta']['symbol'],
         date=date,
         prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bar_date",

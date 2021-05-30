@@ -12,34 +12,6 @@ def run(config: dict, ray_on: bool=False) -> list:
     return run_sampler_flow(config, daily_df, ray_on)
 
 
-def get_dates_from_config(config: dict) -> pd.DataFrame:
-    # find open market dates
-    requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
-    # all avialiable tick backfill dates
-    backfilled_dates = data_access.list_symbol_dates_from_remote(
-        symbol=config['meta']['symbol'],
-        prefix='/data/trades',
-        )
-    # requested & avialiable dates
-    requested_backfilled_dates = list(set(backfilled_dates).intersection(set(requested_open_dates)))
-    # existing dates from results store
-    existing_config_id_dates = data_access.list_symbol_dates_from_remote(
-        symbol=config['meta']['symbol'],
-        prefix=f"/tick_samples/{config['meta']['config_id']}/bar_date/",
-        )
-    # remaining, requested, aviable, dates
-    final_remaining_dates = list(set(requested_backfilled_dates).difference(set(existing_config_id_dates)))
-    # get daily stats for symbol (for dynamic sampling)
-    daily_stats_df = daily_stats.get_symbol_stats(
-        config['meta']['symbol'],
-        config['meta']['start_date'],
-        config['meta']['end_date'],
-        source='local',
-        )
-
-    return daily_stats_df
-
-
 def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=False):
 
     if ray_on:
@@ -57,9 +29,9 @@ def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=Fa
 
         # core distrbuited function: sample ticks and store output in s3/b2
         if ray_on:
-            bar_date = sample_date_ray.remote(config, row.date, save_results_flag=True)
+            bar_date = sample_date_ray.remote(config, row.date, presist_flag=True, progress_bar=False)
         else:
-            bar_date = sampler_task.sample_date(config, row.date, save_results_flag=True)
+            bar_date = sampler_task.sample_date(config, row.date, presist_flag=True, progress_bar=True)
 
         results.append(bar_date)
 
@@ -67,3 +39,37 @@ def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=Fa
         results = ray.get(results)  # wait until distrbuited work is finished
 
     return results
+
+
+def get_dates_from_config(config: dict) -> pd.DataFrame:
+    # find open market dates
+    requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
+    # all avialiable tick backfill dates
+    backfilled_dates = data_access.list_symbol_dates(
+        symbol=config['meta']['symbol'],
+        prefix='/data/trades',
+        source='remote',
+        )
+    # requested & avialiable dates
+    requested_backfilled_dates = list(set(backfilled_dates).intersection(set(requested_open_dates)))
+    # existing dates from results store
+    existing_config_id_dates = data_access.list_symbol_dates(
+        symbol=config['meta']['symbol'],
+        prefix=f"/tick_samples/{config['meta']['config_id']}/bar_date",
+        source='remote',
+        )
+    # remaining, requested, aviable, dates
+    final_remaining_dates = list(set(requested_backfilled_dates).difference(set(existing_config_id_dates)))
+    # get daily stats for symbol (for dynamic sampling)
+    daily_stats_df = daily_stats.get_symbol_stats(
+        symbol=config['meta']['symbol'],
+        start_date=config['meta']['start_date'],
+        end_date=config['meta']['end_date'],
+        source='local',
+        )
+    # return daily stats only for remaining dates
+    if len(final_remaining_dates) > 0:
+        mask = (daily_stats_df.date >= final_remaining_dates[0]) & (daily_stats_df.date <= final_remaining_dates[-1])
+        return daily_stats_df[mask]
+    else:
+        print('No remaining dates')

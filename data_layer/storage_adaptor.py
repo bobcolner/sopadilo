@@ -15,7 +15,7 @@ class StorageAdaptor:
     def list_fs_path(self, fs_path: str) -> str:
         return self.fs.ls(self.root_path + fs_path, refresh=True)
 
-    def list_fs_path_storage_used(self, fs_path: str) -> dict:
+    def list_fs_path_storage(self, fs_path: str) -> dict:
 
         byte_len = self.fs.du(self.root_path + fs_path)
         if byte_len < 10 ** 3:
@@ -59,14 +59,14 @@ class StorageAdaptor:
 
     def list_symbol_dates(self, symbol: str, prefix: str) -> str:
         paths = self.list_fs_path(f"{prefix}/symbol={symbol}")
-        return [path.split('date=')[1] for path in paths]
+        return [path.split('date=')[1] for path in paths if path.split('/')[-1].startswith('date=')]
 
     def list_symbols(self, prefix: str) -> str:
         paths = self.list_fs_path(prefix)
-        return [path.split('symbol=')[1] for path in paths]
+        return [path.split('symbol=')[1] for path in paths if path.split('/')[-1].startswith('symbol=')]
 
-    def list_symbol_storage_used(self, symbol: str, prefix: str) -> dict:
-        return self.list_fs_path_storage_used(f"{prefix}/symbol={symbol}/")
+    def list_symbol_storage(self, symbol: str, prefix: str) -> dict:
+        return self.list_fs_path_storage(f"{prefix}/symbol={symbol}/")
 
     def remove_symbol(self, symbol: str, prefix: str):
         self.remove_fs_path(f"{prefix}/symbol={symbol}/", recursive=True)
