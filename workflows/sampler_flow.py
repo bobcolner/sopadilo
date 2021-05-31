@@ -27,7 +27,7 @@ def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=Fa
             rs = min(rs, row.vwap_jma_lag * 0.005)  # enforce max
             config['sampler'].update({'renko_size': rs})
 
-        # core distrbuited function: sample ticks and store output in s3/b2
+        # core distributed function: filter/sample ticks & presist output
         if ray_on:
             bar_date = sample_date_ray.remote(config, row.date, presist_flag=True, progress_bar=False)
         else:
@@ -42,24 +42,27 @@ def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=Fa
 
 
 def get_dates_from_config(config: dict) -> pd.DataFrame:
+
     # find open market dates
     requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
     # all avialiable tick backfill dates
-    backfilled_dates = data_access.list_symbol_dates(
+    backfilled_dates = data_access.list(
         symbol=config['meta']['symbol'],
         prefix='/data/trades',
         source='remote',
         )
     # requested & avialiable dates
-    requested_backfilled_dates = list(set(backfilled_dates).intersection(set(requested_open_dates)))
+    requested_backfilled_dates = list(set(requested_open_dates).intersection(set(backfilled_dates)))
+
     # existing dates from results store
-    existing_config_id_dates = data_access.list_symbol_dates(
+    existing_config_id_dates = data_access.list(
         symbol=config['meta']['symbol'],
         prefix=f"/tick_samples/{config['meta']['config_id']}/bar_date",
         source='remote',
         )
     # remaining, requested, aviable, dates
     final_remaining_dates = list(set(requested_backfilled_dates).difference(set(existing_config_id_dates)))
+
     # get daily stats for symbol (for dynamic sampling)
     daily_stats_df = daily_stats.get_symbol_stats(
         symbol=config['meta']['symbol'],
@@ -69,7 +72,6 @@ def get_dates_from_config(config: dict) -> pd.DataFrame:
         )
     # return daily stats only for remaining dates
     if len(final_remaining_dates) > 0:
-        mask = (daily_stats_df.date >= final_remaining_dates[0]) & (daily_stats_df.date <= final_remaining_dates[-1])
-        return daily_stats_df[mask]
+        return daily_stats_df.loc[daily_stats_df.date.isin(final_remaining_dates)]
     else:
         print('No remaining dates')

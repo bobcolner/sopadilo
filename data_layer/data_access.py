@@ -4,86 +4,61 @@ from data_layer import storage_adaptor
 from utilities import globals_unsafe as g
 
 
+fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
-fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 
-
-def list_symbol_storage(symbol: str, prefix: str, source: str='remote'):
-
-    if source == 'local':
-        results = fs_local.list_symbol_storage(symbol, prefix)
-    elif source == 'remote':
-        results = fs_remote.list_symbol_storage(symbol, prefix)
-    elif source == 'both':
-        results = {
-            'local': fs_local.list_symbol_storage(symbol, prefix),
-            'remote': fs_remote.list_symbol_storage(symbol, prefix),
-        }
-    return results
-
-
-def list_symbol_dates(symbol: str, prefix: str, source: str='remote'):
-
-    if source == 'local':
-        results = fs_local.list_symbol_dates(symbol, prefix)
-    elif source == 'remote':
-        results = fs_remote.list_symbol_dates(symbol, prefix)
+def list(symbol: str=None, prefix: str='/data/trades', source: str='remote', show_storage: bool=False):
+    if symbol:
+        if source == 'local':
+            results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)
+        elif source == 'remote':
+            results = fs_remote.ls_symbol_dates(symbol, prefix, show_storage)
+    else:
+        if source == 'local':
+            results = fs_local.ls_symbols(prefix, show_storage)
+        elif source == 'remote':
+            results = fs_remote.ls_symbols(prefix, show_storage)
 
     return results
 
 
 def fetch_sd_data(symbol: str, date: str, prefix: str) -> object:
     try:  # try local
-        try:  # try load dataframe
-            sd_obj = fs_local.read_sdf(symbol, date, prefix)
-        except: # try load pickle
-            sd_obj = fs_local.read_sdpickle(symbol, date, prefix)
+        sd_date = fs_local.read_sd_date(symbol, date, prefix)
     except FileNotFoundError:  # try remote
-        try:
-            sd_obj = fs_remote.read_sdf(symbol, date, prefix)
-        except:
-            sd_obj = fs_remote.read_sdpickle(symbol, date, prefix)
+        sd_date = fs_remote.read_sd_date(symbol, date, prefix)
 
-    return sd_obj
+    return sd_date
 
 
 def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str):
-
-    if type(sd_data) == pd.DataFrame:
-        fs_local.write_sdf(sd_data, symbol, date, prefix)
-        fs_remote.write_sdf(sd_data, symbol, date, prefix)
-    else:
-        fs_local.write_sdpickle(sd_data, symbol, date, prefix)
-        fs_remote.write_sdpickle(sd_data, symbol, date, prefix)
+    fs_local.write_sd_data(sd_data, symbol, date, prefix)
+    fs_remote.write_sd_data(sd_data, symbol, date, prefix)
 
 
-def fetch_polygon_data(symbol: str, date: str, tick_type: str='trades', prefix: str='/data') -> pd.DataFrame:
-
+def fetch_polygon_data(symbol: str, date: str, prefix: str='/data/trades') -> pd.DataFrame:
     try:
-        print(symbol, date, 'trying to get data from local file...')
-        sdf = fs_local.read_sdf(symbol, date, prefix=f"{prefix}/{tick_type}")
-    except FileNotFoundError:
-        try:
-            print(symbol, date, 'trying to get data from s3/b2...')
-            sdf = fs_remote.read_sdf(symbol, date, prefix=f"{prefix}/{tick_type}")
-        except FileNotFoundError:
-            print(symbol, date, 'getting data from polygon API...')
-            sdf = polygon_df.get_date_df(symbol, date, tick_type)
-            print(symbol, date, 'saving data to S3/B2...')
-            fs_remote.write_sdf(sdf, symbol, date, prefix=f"{prefix}/{tick_type}")
-        finally:
-            print(symbol, date, 'saving data to local file')
-            fs_local.write_sdf(sdf, symbol, date, prefix=f"{prefix}/{tick_type}")
+        print(symbol, date, 'trying to get fetch data local or remote...')
+        sdf = fetch_sd_data(symbol, date, prefix)
+    except:
+        from data_api import polygon_df
+        print(symbol, date, 'getting data from polygon API...')
+        sdf = polygon_df.get_date_df(symbol, date, tick_type='trades')
+        print(symbol, date, 'saving data to local & remote')
+        presist_sd_data(sdf, symbol, date, prefix)
 
     return sdf
 
 
-def fetch_market_daily(start_date: str, end_date: str) -> pd.DataFrame:
+def fetch_market_daily(start_date: str=None, end_date: str=None) -> pd.DataFrame:
     try:
         mdf = fs_local.read_df_from_fs('/data/daily_agg/data.feather')
     except:
         mdf = fs_remote.read_df_from_fs('/data/daily_agg/data.feather')
     
-    mask = (mdf['date'] >= start_date) & (mdf['date'] <= end_date)
-    return mdf[mask]
+    if (start_date and end_date):
+        mask = (mdf['date'] >= start_date) & (mdf['date'] <= end_date)
+        return mdf[mask]
+    else:
+        return mdf

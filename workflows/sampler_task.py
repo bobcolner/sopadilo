@@ -21,7 +21,7 @@ def sample_date(config: dict, date: str, presist_flag: bool=False, progress_bar:
             volume=tick.size,
             sip_dt=tick.sip_dt,
             exchange_dt=tick.exchange_dt,
-            conditions=tick.conditions,
+            conditions=list(tick.conditions),  # convert to list (fix bug when run in parallel)
         )
         # get current 'filtered' tick
         ftick = tick_filter.ticks[-1]

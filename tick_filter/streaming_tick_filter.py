@@ -1,5 +1,4 @@
 import datetime as dt
-import numpy as np
 import pandas as pd
 from pandas._libs.tslibs.timestamps import Timestamp
 from filters import mad, jma, tick_rule
@@ -20,7 +19,7 @@ class StreamingTickFilter:
         self.update_counter = 0
         self.ticks = []
 
-    def update(self, price: float, volume: int, sip_dt: Timestamp, exchange_dt: Timestamp, conditions: np.ndarray) -> tuple:
+    def update(self, price: float, volume: int, sip_dt: Timestamp, exchange_dt: Timestamp, conditions: list) -> tuple:
 
         self.update_counter += 1        
         self.mad_filter.update(next_value=price)  # update mad filter
@@ -31,6 +30,8 @@ class StreamingTickFilter:
             'status': 'raw',
             'mad': self.mad_filter.mad[-1],
             }
+        # if conditions is not None:
+        #     conditions = conditions.copy()  # prevent 'ValueError: buffer source array is read-only'
         if volume < 1:  # zero volume/size tick
             tick['status'] = 'filtered: zero volume'
         elif pd.Series(conditions).isin(self.irregular_conditions).any():  # 'irrgular' tick condition
