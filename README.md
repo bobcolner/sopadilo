@@ -1,3 +1,3 @@
-# pandas-polygon
+# Sopadio Research Platform
 
-Access Polygon.io high-frequency market data with pandas data-frames.
+high-frequency, high-dimensional stastical arbitrage.
