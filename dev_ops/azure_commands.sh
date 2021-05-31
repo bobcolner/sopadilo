@@ -1,3 +1,20 @@
+## ray cluster creator
+
+# Create or update the cluster. When the command finishes, it will print
+# out the command that can be used to SSH into the cluster head node.
+cd /Users/bobcolner/QuantClarity/sopadilo/dev_ops/ray/cloud_cluster_launcher
+ray up cluster_azure_prod.yaml
+
+# Get a remote screen on the head node.
+ray attach cluster_azure_prod.yaml
+# test ray setup
+python -c 'import ray; ray.init(address="auto")'
+exit
+# Tear down the cluster.
+ray down cluster_azure_prod.yaml
+
+
+
 # ray head node
 IP: 40.117.181.194
 FQDN: ray-head.eastus.cloudapp.azure.com

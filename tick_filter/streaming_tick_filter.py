@@ -34,7 +34,7 @@ class StreamingTickFilter:
         
         if volume < 1:  # zero volume/size tick
             tick['status'] = 'filtered: zero volume'
-        elif (conditions is not None) and np.isin(conditions.copy(), self.irregular_conditions).any():  # 'irrgular' tick condition
+        elif (conditions is not None) and np.isin(conditions.copy(), self.irregular_conditions).any():  # 'irrgular' tick condition (.copy() needed for parallel run)
             tick['status'] = 'filtered: irregular condition'
         elif abs(sip_dt - exchange_dt) > pd.to_timedelta(self.ts_diff_limit_sec, unit='S'):  # large ts deltas
             tick['status'] = 'filtered: ts diff'
