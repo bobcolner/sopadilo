@@ -12,7 +12,7 @@ def run(config: dict, ray_on: bool=False) -> list:
     return run_sampler_flow(config, daily_df, ray_on)
 
 
-def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=False):
+def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=False) -> list:
 
     if ray_on:
         sample_date_ray = ray.remote(sampler_task.sample_date)

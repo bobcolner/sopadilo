@@ -25,9 +25,9 @@ def list(symbol: str=None, prefix: str='/data/trades', source: str='remote', sho
 
 def fetch_sd_data(symbol: str, date: str, prefix: str) -> object:
     try:  # try local
-        sd_date = fs_local.read_sd_date(symbol, date, prefix)
+        sd_date = fs_local.read_sd_data(symbol, date, prefix)
     except FileNotFoundError:  # try remote
-        sd_date = fs_remote.read_sd_date(symbol, date, prefix)
+        sd_date = fs_remote.read_sd_data(symbol, date, prefix)
 
     return sd_date
 
