@@ -8,7 +8,7 @@ fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
 
-def list(prefix: str='', symbol: str=None, source: str='local', show_storage: bool=False):
+def list(symbol: str=None, prefix: str='', source: str='local', show_storage: bool=False):
     if symbol:
         if source == 'local':
             results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)

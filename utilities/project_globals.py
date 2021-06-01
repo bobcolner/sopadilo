@@ -1,42 +1,35 @@
-from os import environ
+import os
+import json
+from os.path import expanduser
 
 
 try:
-    DATA_LOCAL_PATH = environ['DATA_LOCAL_PATH']
-except:
-    DATA_LOCAL_PATH = '/tmp'
+    with open('/tmp/secerets.json', mode='r') as fio:
+        secerets_dict = json.load(fio)
+except FileNotFoundError:
+    secerets_dict = {}
 
-try:
-    DATA_S3_PATH = environ['DATA_S3_PATH']
-except:
-    DATA_S3_PATH = 'polygon-equities'
 
-try:
-    POLYGON_API_KEY = environ['POLYGON_API_KEY']
-except:
-    POLYGON_API_KEY = 'seceret'
+def get_global_value(key: str, secerets_dict: dict=None, default: str='seceret') -> str:
+    try:
+        value = os.environ[key]
+    except KeyError:
+        value = secerets_dict.get(key, default)
 
-try:
-    ALPHAVANTAGE_API_KEY = environ['ALPHAVANTAGE_API_KEY']
-except:
-    ALPHAVANTAGE_API_KEY = 'seceret'
+    return value
 
-try:
-    TIINGO_API_KEY = environ['TIINGO_API_KEY']
-except:
-    TIINGO_API_KEY = 'seceret'
 
-try:
-    B2_ACCESS_KEY_ID = environ['B2_ACCESS_KEY_ID']
-except:
-    B2_ACCESS_KEY_ID = 'seceret'
+# DATA_LOCAL_PATH = get_global_value('DATA_LOCAL_PATH', secerets_dict)
+DATA_LOCAL_PATH = os.getcwd() + '/data'
 
-try:
-    B2_SECRET_ACCESS_KEY = environ['B2_SECRET_ACCESS_KEY']
-except:
-    B2_SECRET_ACCESS_KEY = 'seceret'
+DATA_S3_PATH = get_global_value('DATA_S3_PATH', secerets_dict, 'polygon-equities')
 
-try:
-    B2_ENDPOINT_URL = environ['B2_ENDPOINT_URL']
-except:
-    B2_ENDPOINT_URL = 'seceret'
+ALPHAVANTAGE_API_KEY = get_global_value('ALPHAVANTAGE_API_KEY', secerets_dict)
+
+TIINGO_API_KEY = get_global_value('TIINGO_API_KEY', secerets_dict)
+
+B2_ACCESS_KEY_ID = get_global_value('B2_ACCESS_KEY_ID', secerets_dict)
+
+B2_SECRET_ACCESS_KEY = get_global_value('B2_SECRET_ACCESS_KEY', secerets_dict)
+
+B2_ENDPOINT_URL = get_global_value('B2_ENDPOINT_URL', secerets_dict)
