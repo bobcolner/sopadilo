@@ -1,5 +1,5 @@
 import fsspec
-from utilities import globals_unsafe as g
+from utilities import project_globals as g
 
 
 def get_filesystem(fs_type: str) -> fsspec.filesystem:

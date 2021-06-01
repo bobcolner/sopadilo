@@ -1,5 +1,5 @@
 from requests import get
-from utilities.globals_unsafe import TIINGO_API_KEY
+from utilities.project_globals import TIINGO_API_KEY
 
 # https://api.tiingo.com/documentation/
 BASE_URL = 'https://api.tiingo.com'

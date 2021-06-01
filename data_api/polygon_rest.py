@@ -1,5 +1,5 @@
 import requests
-from utilities.globals_unsafe import POLYGON_API_KEY
+from utilities.project_globals import POLYGON_API_KEY
 
 
 BASE_URL = 'https://api.polygon.io'

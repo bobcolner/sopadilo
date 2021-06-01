@@ -30,25 +30,25 @@ dependencies:
   - nbdime
   - matplotlib
   - bokeh
-  - dask
-  - distributed
+  # - dask
+  # - distributed
   # - modin
   # - pandarallel
   # - swifter
-  - prefect[viz, gcp, aws]
-  - graphviz
-  - joblib
-  - tenacity
+  # - prefect[viz, gcp, aws]
+  # - graphviz
+  # - joblib
+  # - tenacity
   - tqdm
   - requests
-  - trio
+  # - trio
   - fsspec
   - s3fs
-  - boto3
-  - google-api-python-client
+  # - boto3
+  # - google-api-python-client
   - pip
   - pip:
-    - trio-websocket
+    # - trio-websocket
     # - pandas-ta
     # - finta
     # - fracdiff
@@ -56,8 +56,8 @@ dependencies:
     # - finplot
     # - hvplot
     # - yellowbrick
-    - 'ray[default tune]'
-    - tune-sklearn
+    - 'ray[default, tune]'
+    # - tune-sklearn
     # - robustats
     # - skranger
     # - ppscore

@@ -2,7 +2,7 @@ import pandas as pd
 from pyarrow.dataset import dataset, field
 from pyarrow._dataset import FileSystemDataset
 from pyarrow.fs import S3FileSystem
-from utilities import globals_unsafe as g
+from utilities import project_globals as g
 
 
 def get_dataset(symbol: str, prefix: str, fs_type: str='local', schema=None) -> FileSystemDataset:

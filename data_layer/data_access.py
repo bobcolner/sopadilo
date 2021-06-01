@@ -1,14 +1,14 @@
 from typing import Union
 import pandas as pd
 from data_layer import storage_adaptor
-from utilities import globals_unsafe as g
+from utilities import project_globals as g
 
 
 fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
 
-def list(symbol: str=None, prefix: str='/data/trades', source: str='remote', show_storage: bool=False):
+def list(prefix: str='', symbol: str=None, source: str='local', show_storage: bool=False):
     if symbol:
         if source == 'local':
             results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)

@@ -1,16 +1,25 @@
 import datetime as dt
+import pickle
 import numpy as np
 import pandas as pd
-from data_model import arrow_dataset, fsspec_backend
+import pandas_bokeh
+pandas_bokeh.output_file("/tmp/bokeh_output.html")
+import ray
+
+from data_layer import arrow_dataset, storage_adaptor
 from tick_filter import streaming_tick_filter
-from tick_sampler import streaming_tick_sampler, stacked, meta, meta_ray
-from utilities import pickle
+from tick_sampler import streaming_tick_sampler, daily_stats
+from workflows import sampler_task, sampler_flow
+from utilities import date_fu, project_globals as g
+from data_layer import storage_adaptor, fsspec_factory, data_access
+
 
 config = {
     'meta': {
-        'symbol': 'GORO',
-        'start_date': '2020-11-10',
-        'end_date': '2020-11-16',
+        'symbol': 'AU',
+        'start_date': '2019-01-01',
+        'end_date': '2019-02-01',
+        'config_id': 'renko_v1',
     },
     'filter': {
         'mad_value_winlen': 22,
@@ -18,14 +27,13 @@ config = {
         'mad_k': 17,
         'jma_winlen': 7,
         'jma_power': 2,
-        # 'batch_freq': '2s',
     },
     'sampler': {
         'renko_return': 'price_jma_return',
         'renko_size': 0.1,  # for simple runs
         'renko_reveral_multiple': 2,
         'renko_range_frac': 22,
-        'renko_range_min_pct_value': 0.03,  # X% of symbol value to enforc min renko size
+        'renko_range_min_pct_value': 0.03,  # % of symbol value enforced as min renko size
         'max_duration_td': dt.timedelta(minutes=33),
         'min_duration_td': dt.timedelta(seconds=33),
         'min_tick_count': 33,
@@ -34,15 +42,17 @@ config = {
     }
 }
 
-import ray
+prefix_1 = f"/tick_samples/{config['meta']['config_id']}/bar_date"
+
+prefix_2 = f"/tick_samples/{config['meta']['config_id']}/bars_df"
+
+prefix_3 = '/data/trades'
+
+
 ray.init(dashboard_port=1111, ignore_reinit_error=True)
+# ray.shutdown()
 
-bds = meta_ray.sample_dates(config)
+data_access.list('MAG', prefix_1, show_storage=True, source='remote')
 
-# bar dates stats
-stacked.bar_dates_stats(bds)
+bar_dates = sampler_flow.run(config, ray_on=True)
 
-# bds = pickle.pickle_dump(bds, 'tmp/bds.pickle')
-# bds = pickle.pickle_load('tmp/bds.pickle')
-
-stacked_df = stacked.fill_gaps_dates(bds, fill_col='price_close')

@@ -1,3 +1,11 @@
+# fat-vm
+IP: 52.183.59.153
+DNS: raystation.westus2.cloudapp.azure.com
+name: raystation
+
+ssh -i ~/.ssh/config azure_admin@raystation.westus2.cloudapp.azure.com
+
+
 ## ray cluster creator
 
 # Create or update the cluster. When the command finishes, it will print
@@ -7,6 +15,11 @@ ray up cluster_azure_prod.yaml
 
 # Get a remote screen on the head node.
 ray attach cluster_azure_prod.yaml
+# or
+ssh -i ~/.ssh/config ubuntu@52.183.62.176
+# or
+ssh -o IdentitiesOnly=yes -i ~/.ssh/id_rsa ubuntu@52.183.62.176
+
 # test ray setup
 python -c 'import ray; ray.init(address="auto")'
 exit
@@ -29,6 +42,9 @@ az vmss stop --resource-group ray --name ray-node-workers
 # manual ssh into vm with static IP
 ssh -i ~/.ssh/config ubuntu@40.117.181.194
 ssh -i ~/.ssh/config ubuntu@ray-head.eastus.cloudapp.azure.com
+
+# clone repo
+git clone https://github.com/bobcolner/sopadilo.git
 
 # copy files from local to vm
 scp -r ~/QuantClarity/sopadilo/ ubuntu@ray-head.eastus.cloudapp.azure.com:/home/ubuntu/

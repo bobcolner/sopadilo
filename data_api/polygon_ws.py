@@ -4,7 +4,7 @@ from json import loads
 import pandas as pd
 from trio import run
 from trio_websocket import open_websocket_url
-from utilities.globals_unsafe import POLYGON_API_KEY
+from utilities.project_globals import POLYGON_API_KEY
 
 
 def run_stream_ticks(tickers: str='T.SPY, Q.SPY', file_name: str='data.txt'):
