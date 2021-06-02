@@ -8,7 +8,7 @@ fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3', root_path=g.DATA_S3_PATH)
 
 
-def list(symbol: str=None, prefix: str='', source: str='local', show_storage: bool=False) -> Union[list, dict]:
+def list(symbol: str=None, prefix: str='', source: str='remote', show_storage: bool=False) -> Union[list, dict]:
     if symbol:
         if source == 'local':
             results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)
@@ -32,10 +32,10 @@ def fetch_sd_data(symbol: str, date: str, prefix: str) -> object:
     return sd_date
 
 
-def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str, source: str='remote'):
-    if source in ['local', 'both']:
+def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str, destination: str='remote'):
+    if destination in ['local', 'both']:
         fs_local.write_sd_data(sd_data, symbol, date, prefix)
-    elif source in ['remote', 'both']:
+    elif destination in ['remote', 'both']:
         fs_remote.write_sd_data(sd_data, symbol, date, prefix)
 
 

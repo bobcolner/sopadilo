@@ -96,7 +96,7 @@ class StorageAdaptor:
             sd_data = self.read_sdf(symbol, date, prefix)
         except:
             sd_data = self.read_sdpickle(symbol, date, prefix)
-        return sd_date
+        return sd_data
 
     def read_sdf(self, symbol: str, date: str, prefix: str, columns: list=None) -> pd.DataFrame:
         return self.read_df_from_fs(f"{prefix}/symbol={symbol}/date={date}/data.feather", columns)

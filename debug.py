@@ -20,6 +20,7 @@ config = {
         'start_date': '2019-01-01',
         'end_date': '2019-02-01',
         'config_id': 'renko_v1',
+        'presist_destination': 'remote',
     },
     'filter': {
         'mad_value_winlen': 22,

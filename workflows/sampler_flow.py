@@ -29,9 +29,9 @@ def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=Fa
 
         # core distributed function: filter/sample ticks & presist output
         if ray_on:
-            bar_date = sample_date_ray.remote(config, row.date, presist_flag=True, progress_bar=False)
+            bar_date = sample_date_ray.remote(config, row.date, progress_bar=False)
         else:
-            bar_date = sampler_task.sample_date(config, row.date, presist_flag=True, progress_bar=True)
+            bar_date = sampler_task.sample_date(config, row.date, progress_bar=True)
 
         results.append(bar_date)
 

@@ -6,7 +6,7 @@ from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, labels
 
 
-def sample_date(config: dict, date: str, presist_flag: bool=False, progress_bar: bool=True) -> dict:
+def sample_date(config: dict, date: str, progress_bar: bool=True) -> dict:
     
     print('running', config['meta']['symbol'], date)  # logging
 
@@ -56,13 +56,13 @@ def sample_date(config: dict, date: str, presist_flag: bool=False, progress_bar:
         'bars_df': pd.DataFrame(bars),
         'bars': bars,
         }
-    if presist_flag:
-        presist_output(bar_date, date)
+    if config['meta']['presist_destination'] in ['remote', 'local', 'both']:
+        presist_output(bar_date, date, destination=config['meta']['presist_destination'])
 
     return bar_date
 
 
-def presist_output(bar_date: dict, date: str):
+def presist_output(bar_date: dict, date: str, destination: str='remote'):
 
     # save bars_df
     data_access.presist_sd_data(
@@ -70,6 +70,7 @@ def presist_output(bar_date: dict, date: str):
         symbol=bar_date['config']['meta']['symbol'], 
         date=date, 
         prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bars_df",
+        destination=destination,
         )
     # drop dataframes
     bd = bar_date.copy()  # copy to avoid mutating date
@@ -81,4 +82,5 @@ def presist_output(bar_date: dict, date: str):
         symbol=bar_date['config']['meta']['symbol'],
         date=date,
         prefix=f"/tick_samples/{bar_date['config']['meta']['config_id']}/bar_date",
+        destination=destination,
         )
