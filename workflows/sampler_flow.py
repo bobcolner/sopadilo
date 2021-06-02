@@ -8,8 +8,9 @@ from workflows import sampler_task
 
 def run(config: dict, ray_on: bool=False) -> list:
     daily_df = get_dates_from_config(config)
-    print(len(daily_df), 'dates scheduled')
-    return run_sampler_flow(config, daily_df, ray_on)
+    if daily_df:
+        print(len(daily_df), 'dates scheduled')
+        return run_sampler_flow(config, daily_df, ray_on)
 
 
 def run_sampler_flow(config: dict, daily_stats_df: pd.DataFrame, ray_on: bool=False) -> list:

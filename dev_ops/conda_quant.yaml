@@ -5,15 +5,15 @@ channels:
   - defaults
 dependencies:
   - python = 3.8
-  # - xeus-python
   - mkl
   - mamba
-  # - nomkl
-  # - openblas
   - numpy
   - scipy
   - scikit-learn
   - statsmodels
+  # - xeus-python
+  # - nomkl
+  # - openblas
   # - pingouin
   # - fastcluster
   # - pyclustering
@@ -23,7 +23,6 @@ dependencies:
   - pandas_market_calendars
   # trading_calendars
   - ipython
-  # - jedi == 0.17.2
   - ipdb
   - jupyterlab < 3.0
   - jupyterlab-git
@@ -41,22 +40,24 @@ dependencies:
   # - tenacity
   - tqdm
   - requests
-  # - trio
   - fsspec
   - s3fs
+  # - trio
   # - boto3
   # - google-api-python-client
   - pip
   - pip:
+    - pandas-bokeh
+    - 'ray[default, tune]'
+    - pudb
+    - icecream
     # - trio-websocket
     # - pandas-ta
     # - finta
     # - fracdiff
-    - pandas-bokeh
     # - finplot
     # - hvplot
     # - yellowbrick
-    - 'ray[default, tune]'
     # - tune-sklearn
     # - robustats
     # - skranger
@@ -66,18 +67,15 @@ dependencies:
     # - pdbpp
     # - pdbr
     # - ipdb
-    - pudb
-    - icecream
     # - 'smart_open[gcs s3]'
 
-# jupyter labextension install:
-  # @jupyterlab/toc
-  # @krassowski/jupyterlab_go_to_definition
-  # jupyterlab-execute-time
-  # @jupyterlab/shortcutui
-  # nbdime-jupyterlab
-  # qgrid2
-  # @jupyterlab/git
+# jupyter labextension install @jupyterlab/toc
+# jupyter labextension install @jupyterlab/git
+# jupyter labextension install nbdime-jupyterlab
+# jupyter labextension install jupyterlab-execute-time
+
+# jupyter labextension install @krassowski/jupyterlab_go_to_definition
+# jupyter labextension install @jupyterlab/shortcutui
 
 # https://github.com/gregversteeg/gaussianize
 # https://github.com/gregversteeg/LinearCorex

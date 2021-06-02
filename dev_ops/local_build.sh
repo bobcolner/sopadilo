@@ -12,13 +12,12 @@ apt-get -qq -y autoremove && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* /var/log/dpkg.log
 
-# add conda to root user path
-echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh
-
 # install latest miniconda distro
 wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -bfp /opt/conda
 rm Miniconda3-latest-Linux-x86_64.sh
+# add conda to root user path
+echo 'export PATH=/opt/conda/bin:$PATH' > /etc/profile.d/conda.sh
 conda init -q
 conda update -q -n base -q conda
 
@@ -40,12 +39,12 @@ export DATA_LOCAL_PATH="/home/azure_admin/data"
 export DATA_S3_PATH="polygon-equities"
 
 # install project code
-cd /home/azure_admin
+cd /home/azureuser
 mkdir data
 git clone https://github.com/bobcolner/sopadilo
 cd sopadilo
 
 # install python deps in conda
-conda env create -f /dev_ops/conda_quant.yaml
+conda env create -f dev_ops/conda_quant.yaml
 # clea up conda files
 conda clean --all --yes
