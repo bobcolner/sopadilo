@@ -5,10 +5,10 @@ from utilities import project_globals as g
 
 
 fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
-fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
+fs_remote = storage_adaptor.StorageAdaptor('s3', root_path=g.DATA_S3_PATH)
 
 
-def list(symbol: str=None, prefix: str='', source: str='local', show_storage: bool=False):
+def list(symbol: str=None, prefix: str='', source: str='local', show_storage: bool=False) -> Union[list, dict]:
     if symbol:
         if source == 'local':
             results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)
@@ -24,17 +24,19 @@ def list(symbol: str=None, prefix: str='', source: str='local', show_storage: bo
 
 
 def fetch_sd_data(symbol: str, date: str, prefix: str) -> object:
-    try:  # try local
+    try:
         sd_date = fs_local.read_sd_data(symbol, date, prefix)
-    except FileNotFoundError:  # try remote
+    except FileNotFoundError:
         sd_date = fs_remote.read_sd_data(symbol, date, prefix)
 
     return sd_date
 
 
-def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str):
-    fs_local.write_sd_data(sd_data, symbol, date, prefix)
-    fs_remote.write_sd_data(sd_data, symbol, date, prefix)
+def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str, source: str='remote'):
+    if source in ['local', 'both']:
+        fs_local.write_sd_data(sd_data, symbol, date, prefix)
+    elif source in ['remote', 'both']:
+        fs_remote.write_sd_data(sd_data, symbol, date, prefix)
 
 
 def fetch_polygon_data(symbol: str, date: str, prefix: str='/data/trades') -> pd.DataFrame:
@@ -46,7 +48,7 @@ def fetch_polygon_data(symbol: str, date: str, prefix: str='/data/trades') -> pd
         print(symbol, date, 'getting data from polygon API...')
         sdf = polygon_df.get_date_df(symbol, date, tick_type='trades')
         print(symbol, date, 'saving data to local & remote')
-        presist_sd_data(sdf, symbol, date, prefix)
+        presist_sd_data(sdf, symbol, date, prefix, source='both')
 
     return sdf
 

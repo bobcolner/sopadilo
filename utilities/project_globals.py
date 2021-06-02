@@ -4,7 +4,7 @@ from os.path import expanduser
 
 
 try:
-    with open('/tmp/secerets.json', mode='r') as fio:
+    with open('./tmp/secerets.json', mode='r') as fio:
         secerets_dict = json.load(fio)
 except FileNotFoundError:
     secerets_dict = {}

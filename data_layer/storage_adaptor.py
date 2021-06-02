@@ -1,5 +1,6 @@
 from io import BytesIO
 from tempfile import NamedTemporaryFile
+from typing import Union
 import pickle
 import pandas as pd
 from data_layer import fsspec_factory
@@ -7,7 +8,7 @@ from data_layer import fsspec_factory
 
 class StorageAdaptor:
 
-    def __init__(self, fs_type: str='s3_filecache', root_path: str='polygon-equities'):
+    def __init__(self, fs_type: str='s3', root_path: str='polygon-equities'):
         self.fs = fsspec_factory.get_filesystem(fs_type)
         self.fs_type = fs_type
         self.root_path = root_path
@@ -62,18 +63,18 @@ class StorageAdaptor:
 
 ### high-level functions: /{ROOT_PATH}/{prefix}/symbol={symbol}/date={date}/data.feather
 
-    def ls_symbols(self, prefix: str, show_storage: bool=False) -> str:
+    def ls_symbols(self, prefix: str, show_storage: bool=False) -> Union[list, dict]:
         dir_ls = self.ls_fs_path(prefix, show_storage)
         symbols = [path.split('symbol=')[1] for path in dir_ls['paths'] if path.split('/')[-1].startswith('symbol=')]
         if show_storage:
             return {
                 'size': dir_ls['size'],
-                'symbols': symbols
+                'symbols': symbols,
             }
         else:
             return symbols
 
-    def ls_symbol_dates(self, symbol: str, prefix: str, show_storage: bool=False) -> str:
+    def ls_symbol_dates(self, symbol: str, prefix: str, show_storage: bool=False) -> Union[list, dict]:
         dir_ls = self.ls_fs_path(f"{prefix}/symbol={symbol}", show_storage)
         dates = [path.split('date=')[1] for path in dir_ls['paths'] if path.split('/')[-1].startswith('date=')]
         if show_storage:
@@ -90,11 +91,12 @@ class StorageAdaptor:
     def remove_symbol_date(self, symbol: str, date: str, prefix: str):
         self.remove_fs_path(f"{prefix}/symbol={symbol}/date={date}/", recursive=True)
 
-    def read_sd_data(self, symbol: str, date: str, prefix: str):
-        try:  # try load dataframe
-            return self.read_sdf(symbol, date, prefix)
-        except: # try load pickle
-            return self.read_sdpickle(symbol, date, prefix)
+    def read_sd_data(self, symbol: str, date: str, prefix: str) -> Union[pd.DataFrame, object]:
+        try:
+            sd_data = self.read_sdf(symbol, date, prefix)
+        except:
+            sd_data = self.read_sdpickle(symbol, date, prefix)
+        return sd_date
 
     def read_sdf(self, symbol: str, date: str, prefix: str, columns: list=None) -> pd.DataFrame:
         return self.read_df_from_fs(f"{prefix}/symbol={symbol}/date={date}/data.feather", columns)

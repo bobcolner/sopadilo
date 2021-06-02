@@ -3,7 +3,13 @@ IP: 52.183.59.153
 DNS: raystation.westus2.cloudapp.azure.com
 name: raystation
 
+az vm start --resource-group fat-vm --name raystation
+az vm stop --resource-group fat-vm --name raystation
+
 ssh -i ~/.ssh/config azure_admin@raystation.westus2.cloudapp.azure.com
+
+scp ~/QuantClarity/sopadilo/tmp/secerets.json \
+	azure_admin@raystation.westus2.cloudapp.azure.com:/home/azure_admin/sopadilo/tmp/secerets.json
 
 
 ## ray cluster creator
@@ -25,7 +31,6 @@ python -c 'import ray; ray.init(address="auto")'
 exit
 # Tear down the cluster.
 ray down cluster_azure_prod.yaml
-
 
 
 # ray head node

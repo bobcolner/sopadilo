@@ -2,8 +2,8 @@ import datetime as dt
 import pickle
 import numpy as np
 import pandas as pd
-import pandas_bokeh
-pandas_bokeh.output_file("/tmp/bokeh_output.html")
+# import pandas_bokeh
+# pandas_bokeh.output_file("/tmp/bokeh_output.html")
 import ray
 
 from data_layer import arrow_dataset, storage_adaptor
