@@ -27,17 +27,6 @@ conda config --system --prepend channels conda-forge && \
     conda config --system --set show_channel_urls true && \
     conda config --system --set channel_priority strict
 
-# via alpaca account
-export POLYGON_API_KEY=""
-export APCA_API_KEY_ID=""
-# backblaze b2 storage
-export B2_ACCESS_KEY_ID=""  # applicationKeyId
-export B2_SECRET_ACCESS_KEY=""  # applicationKey
-export B2_ENDPOINT_URL=""
-# quant results path
-export DATA_LOCAL_PATH="/home/azure_admin/data"
-export DATA_S3_PATH="polygon-equities"
-
 # install project code
 cd /home/azureuser
 mkdir data

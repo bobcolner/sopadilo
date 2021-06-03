@@ -4,9 +4,8 @@ from filters import jma
 from data_layer import data_access
 
 
-def get_symbol_stats(symbol: str, start_date: str,
-    end_date: str=(dt.datetime.today().date() - dt.timedelta(days=1)).isoformat(),
-    source: str='local') -> pd.DataFrame:
+def get_symbol_stats(symbol: str, start_date: str, 
+    end_date: str=(dt.datetime.today().date() - dt.timedelta(days=1)).isoformat()) -> pd.DataFrame:
 
     # get exta 10 days
     adj_start_date = (dt.datetime.fromisoformat(start_date) - dt.timedelta(days=20)).date().isoformat()

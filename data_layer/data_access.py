@@ -8,7 +8,7 @@ fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3', root_path=g.DATA_S3_PATH)
 
 
-def list(symbol: str=None, prefix: str='', source: str='remote', show_storage: bool=False) -> Union[list, dict]:
+def list(prefix: str, symbol: str=None, source: str='remote', show_storage: bool=False) -> Union[list, dict]:
     if symbol:
         if source == 'local':
             results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)
@@ -23,11 +23,16 @@ def list(symbol: str=None, prefix: str='', source: str='remote', show_storage: b
     return results
 
 
-def fetch_sd_data(symbol: str, date: str, prefix: str) -> object:
-    try:
-        sd_date = fs_local.read_sd_data(symbol, date, prefix)
-    except FileNotFoundError:
+def fetch_sd_data(symbol: str, date: str, prefix: str, source: str='local_then_remote') -> object:
+    if source == 'local_then_remote':
+        try:
+            sd_date = fs_local.read_sd_data(symbol, date, prefix)
+        except FileNotFoundError:
+            sd_date = fs_remote.read_sd_data(symbol, date, prefix)
+    elif source == 'remote':
         sd_date = fs_remote.read_sd_data(symbol, date, prefix)
+    elif source == 'local':
+        sd_date = fs_local.read_sd_data(symbol, date, prefix)
 
     return sd_date
 

@@ -6,21 +6,31 @@ import pandas as pd
 # pandas_bokeh.output_file("/tmp/bokeh_output.html")
 import ray
 
+import datetime as dt
+import pickle
+import numpy as np
+import pandas as pd
+import pandas_bokeh
+pandas_bokeh.output_file("/tmp/bokeh_output.html")
+import ray
+
 from data_layer import arrow_dataset, storage_adaptor
 from tick_filter import streaming_tick_filter
 from tick_sampler import streaming_tick_sampler, daily_stats
 from workflows import sampler_task, sampler_flow
 from utilities import date_fu, project_globals as g
-from data_layer import storage_adaptor, fsspec_factory, data_access
+from data_layer import storage_adaptor, fsspec_factory, data_access, arrow_dataset
 
 
 config = {
     'meta': {
-        'symbol': 'AU',
+        'symbol': 'EGO',
+        'symbol_list': ['GFI','GLD','GORO','GSS'],
         'start_date': '2019-01-01',
-        'end_date': '2019-02-01',
+        'end_date': '2019-03-01',
         'config_id': 'renko_v1',
         'presist_destination': 'remote',
+        'ray_on': True,
     },
     'filter': {
         'mad_value_winlen': 22,
@@ -49,11 +59,9 @@ prefix_2 = f"/tick_samples/{config['meta']['config_id']}/bars_df"
 
 prefix_3 = '/data/trades'
 
+data_access.list(prefix_3)
 
 ray.init(dashboard_port=1111, ignore_reinit_error=True)
 # ray.shutdown()
 
-data_access.list('MAG', prefix_1, show_storage=True, source='remote')
-
-bar_dates = sampler_flow.run(config, ray_on=True)
-
+out = sampler_flow.run_list(config)

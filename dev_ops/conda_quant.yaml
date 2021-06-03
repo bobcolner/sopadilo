@@ -71,6 +71,7 @@ dependencies:
 
 # jupyter labextension install @jupyterlab/toc
 # jupyter labextension install @jupyterlab/git
+  # https://github.com/jupyterlab/jupyterlab-git/tree/jlab-2
 # jupyter labextension install nbdime-jupyterlab
 # jupyter labextension install jupyterlab-execute-time
 
