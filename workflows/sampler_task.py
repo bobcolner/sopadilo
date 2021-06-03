@@ -13,7 +13,7 @@ def sample_date(config: dict, date: str, progress_bar: bool=True) -> dict:
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
     # get raw trades
-    tdf = data_access.fetch_sd_data(symbol=config['meta']['symbol'], date=date, prefix='/data/trades', source='remote')
+    tdf = data_access.fetch_sd_data(symbol=config['meta']['symbol'], date=date, prefix='/data/trades')
     for tick in tqdm(tdf.itertuples(), total=tdf.shape[0], disable=(not progress_bar)):
         # filter/enrich tick
         tick_filter.update(

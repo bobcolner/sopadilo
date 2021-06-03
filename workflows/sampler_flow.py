@@ -7,15 +7,15 @@ from workflows import sampler_task
 
 
 def run(config: dict) -> list:
-
-    if len(config['meta']['symbol_list']) > 0:
-        try:
-            for symbol in config['meta']['symbol_list']:
+    bar_data = []
+    if len(config['meta']['symbol_list']) > 0:    
+        for symbol in config['meta']['symbol_list']:
+            try:
                 config['meta'].update({'symbol': symbol})
                 bar_data = run_sampler_flow(config)
-        except:
-            print('failed symbol list:', config['meta']['symbol'])
-            pass
+            except:
+                print('failed symbol list:', config['meta']['symbol'])
+                pass
 
     else:
         bar_data = run_sampler_flow(config)
@@ -79,14 +79,15 @@ def get_dates_from_config(config: dict) -> pd.DataFrame:
     # remaining, requested, aviable, dates
     final_remaining_dates = list(set(requested_backfilled_dates).difference(set(existing_config_id_dates)))
 
-    # get symbol daily stats for dynamic sampling
-    daily_stats_df = daily_stats.get_symbol_stats(
-        symbol=config['meta']['symbol'],
-        start_date=config['meta']['start_date'],
-        end_date=config['meta']['end_date'],
-        )
     # return daily stats only for remaining dates
     if len(final_remaining_dates) > 0:
+        # get symbol daily stats for dynamic sampling
+        daily_stats_df = daily_stats.get_symbol_stats(
+            symbol=config['meta']['symbol'],
+            start_date=config['meta']['start_date'],
+            end_date=config['meta']['end_date'],
+            )
         return daily_stats_df.loc[daily_stats_df.date.isin(final_remaining_dates)]
     else:
+        print("No remaining dates")
         raise Exception("No remaining dates")

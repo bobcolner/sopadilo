@@ -8,7 +8,7 @@ from data_layer import fsspec_factory
 
 class StorageAdaptor:
 
-    def __init__(self, fs_type: str='s3', root_path: str='polygon-equities'):
+    def __init__(self, fs_type: str, root_path: str):
         self.fs = fsspec_factory.get_filesystem(fs_type)
         self.fs_type = fs_type
         self.root_path = root_path

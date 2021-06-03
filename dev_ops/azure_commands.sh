@@ -16,8 +16,10 @@ ssh -i ~/.ssh/config azureuser@40.65.111.128
 jupyter serverextension enable --py jupyterlab --sys-prefix
 jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
 
+http://40.65.111.128:8888
+
 # clone repo
 git clone https://github.com/bobcolner/sopadilo.git
 
 scp ~/QuantClarity/sopadilo/tmp/secerets.json \
-	azureuser@raystation.westus2.cloudapp.azure.com:/home/azureuser/sopadilo/tmp/secerets.json
+	azureuser@40.65.111.128:/home/azureuser/sopadilo/secerets.json

@@ -1,13 +1,15 @@
-
-DATA_ROOT/
-data/
-tmp/
 joblib/
 dask-worker-space/
 __pycache__/
 .vscode/
+.ipynb_checkpoints/
+tmp/local_data
+tmp/fsspec_cache
+tmp/stash
 
-.ipynb_checkpoints/*
+secerets.*
+bokeh_output.html
+
 *.pyc
 *.feather
 *.parquet
@@ -16,6 +18,3 @@ __pycache__/
 
 .DS_Store
 .Rhistory
-
-bokeh_output.html
-secerets.*

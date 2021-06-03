@@ -19,8 +19,7 @@ def get_global_value(key: str, secerets_dict: dict=None, default: str='seceret')
     return value
 
 
-# DATA_LOCAL_PATH = get_global_value('DATA_LOCAL_PATH', secerets_dict)
-DATA_LOCAL_PATH = os.getcwd() + '/data'
+DATA_LOCAL_PATH = os.getcwd() + '/tmp/local_data'
 
 DATA_S3_PATH = get_global_value('DATA_S3_PATH', secerets_dict, 'polygon-equities')
 

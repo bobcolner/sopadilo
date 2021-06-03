@@ -1,11 +1,16 @@
 from typing import Union
+from pathlib import Path
 import pandas as pd
 from data_layer import storage_adaptor
 from utilities import project_globals as g
 
 
+# create local paths if necessary
+(Path.cwd() / 'tmp/local_data').mkdir(parents=True, exist_ok=True)
+(Path.cwd() / 'tmp/fsspec_cache').mkdir(parents=True, exist_ok=True)
+
 fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
-fs_remote = storage_adaptor.StorageAdaptor('s3', root_path=g.DATA_S3_PATH)
+fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
 
 def list(prefix: str, symbol: str=None, source: str='remote', show_storage: bool=False) -> Union[list, dict]:

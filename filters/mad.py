@@ -20,7 +20,7 @@ class MADFilter:
         self.value_median = np.median(self.values)
         self.diff = next_value - self.value_median
         diff_type = 'simple'
-        if diff_type is 'simple':
+        if diff_type == 'simple':
             self.abs_diff = abs(self.diff)
         elif diff_type == 'pct':
             self.abs_diff = abs(self.diff / self.value_median) * 100

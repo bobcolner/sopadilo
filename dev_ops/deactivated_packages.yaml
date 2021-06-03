@@ -1,0 +1,73 @@
+
+- xeus-python
+- nomkl
+- openblas
+- pingouin
+- fastcluster
+- pyclustering
+- pycaret
+- dask
+- distributed
+- modin
+- pandarallel
+- swifter
+- prefect[viz, gcp, aws]
+- graphviz
+- joblib
+- tenacity
+- trio
+- boto3
+- google-api-python-client
+
+- trio-websocket
+- pandas-ta
+- finta
+- fracdiff
+- finplot
+- hvplot
+- yellowbrick
+- tune-sklearn
+- robustats
+- skranger
+- ppscore
+- persist-queue[extra]
+- dcor
+- pdbpp
+- pdbr
+- ipdb
+- 'smart_open[gcs s3]'
+
+jupyter labextension install @jupyterlab/toc
+jupyter labextension install @jupyterlab/git
+https://github.com/jupyterlab/jupyterlab-git/tree/jlab-2
+jupyter labextension install nbdime-jupyterlab
+jupyter labextension install jupyterlab-execute-time
+
+jupyter labextension install @krassowski/jupyterlab_go_to_definition
+jupyter labextension install @jupyterlab/shortcutui
+
+https://github.com/gregversteeg/gaussianize
+https://github.com/gregversteeg/LinearCorex
+https://github.com/gregversteeg/bio_corex
+https://github.com/gregversteeg/corex_topic
+https://github.com/hrayrhar/T-CorEx
+https://github.com/gregversteeg/LinearSieve
+
+https://github.com/ChongYou/subspace-clustering
+- progressbar
+- spams
+https://github.com/padilha/biclustlib
+https://github.com/KronicDeth/biclustering
+https://github.com/Biclustering/biclust
+https://pypi.org/project/SubCMedians
+
+https://github.com/udellgroup/pyglrm
+
+pip install -f http://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html h2o
+brew tap adoptopenjdk/openjdk
+brew cask install adoptopenjdk14
+
+profilers
+filprofiler
+austin-tui
+scalene
