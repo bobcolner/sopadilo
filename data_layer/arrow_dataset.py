@@ -5,14 +5,16 @@ from pyarrow.fs import S3FileSystem
 from utilities import project_globals as g
 
 
-def get_dataset(symbol: str, prefix: str, fs_type: str='local', schema=None) -> FileSystemDataset:
+def get_dataset(prefix: str, symbol: str=None, fs_type: str='local', schema=None) -> FileSystemDataset:
+
+    if symbol is not None:
+        path_str = f"{prefix}/symbol={symbol}"
+    else:
+        path_str = f"{prefix}"
 
     if fs_type == 'local':
-        full_path = g.DATA_LOCAL_PATH + f"/{prefix}/"
-        if symbol:
-            full_path = full_path + f"symbol={symbol}/"
         ds = dataset(
-            source=full_path,
+            source=g.DATA_LOCAL_PATH + path_str,
             format='feather',
             partitioning='hive',
             schema=schema,
@@ -25,7 +27,7 @@ def get_dataset(symbol: str, prefix: str, fs_type: str='local', schema=None) -> 
             endpoint_override=g.B2_ENDPOINT_URL
         )
         ds = dataset(
-            source=g.DATA_S3_PATH + f"{prefix}/symbol={symbol}/",
+            source=g.DATA_S3_PATH + path_str,
             format='feather',
             filesystem=s3,
             schema=schema,

@@ -5,11 +5,12 @@ from data_layer import storage_adaptor
 from utilities import project_globals as g
 
 
-# create local paths if necessary
+# local data source
 (Path.cwd() / 'tmp/local_data').mkdir(parents=True, exist_ok=True)
-(Path.cwd() / 'tmp/fsspec_cache').mkdir(parents=True, exist_ok=True)
-
 fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
+
+# remote data source with local filecache
+(Path.cwd() / 'tmp/fsspec_cache').mkdir(parents=True, exist_ok=True)
 fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
 

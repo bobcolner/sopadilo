@@ -19,7 +19,10 @@ jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
 http://40.65.111.128:8888
 
 # clone repo
+git config --global user.name "Bob Colner"
+git config --global user.email "bcolner@gmail.com"
 git clone https://github.com/bobcolner/sopadilo.git
+
 
 scp ~/QuantClarity/sopadilo/tmp/secerets.json \
 	azureuser@40.65.111.128:/home/azureuser/sopadilo/secerets.json
