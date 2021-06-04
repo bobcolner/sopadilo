@@ -1,28 +1,19 @@
-import ray
-from tick_sampler import daily_stats, meta
-
-
-def sample_dates(thresh: dict) -> list:
-
-    daily_stats_df = daily_stats.get_symbol_stats(thresh['meta']['symbol'], thresh['meta']['start_date'], thresh['meta']['end_date'])
-    sample_date_ray = ray.remote(meta.sample_date)
-    date_futures = []
-    for row in daily_stats_df.itertuples():
-        if 'range_jma_lag' in daily_stats_df.columns:
-            rs = max(row.range_jma_lag / thresh['sampler']['renko_range_frac'],
-                    row.vwap_jma_lag * (thresh['sampler']['renko_range_min_pct_value'] / 100))  # force min
-            rs = min(rs, row.vwap_jma_lag * 0.005)  # enforce max
-            thresh['sampler'].update({'renko_size': rs})
-
-        bar_date = sample_date_ray.remote(thresh, row.date)
-        date_futures.append(bar_date)
-
-    bar_dates = ray.get(date_futures)
-
-    return bar_dates
 
 
 def curve_drop(distance_miles: float) -> float:
     # curnve drop in inches
     drop_inches = (distance_miles ** 2) * 8 / 12
     return drop_inches
+
+
+def compound_interest(principle: float, rate: float, peroids: int): 
+    # Calculates compound interest  
+    total_return = principle * (pow((1 + rate / 100), peroids)) 
+    print("Total Interest $:", round(total_return, 2))
+    print("Anualized Peroid %", round(total_return / principle, 1) * 100)
+
+
+def read_matching_files(glob_string: str, reader=pd.read_csv) -> pd.DataFrame:
+    from glob import glob
+    from os import path
+    return pd.concat(map(reader, glob(path.join('', glob_string))), ignore_index=True)

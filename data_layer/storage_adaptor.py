@@ -1,5 +1,4 @@
 from io import BytesIO
-from tempfile import NamedTemporaryFile
 from typing import Union
 import pickle
 import pandas as pd
@@ -52,9 +51,8 @@ class StorageAdaptor:
 
     def write_df_to_fs(self, df: pd.DataFrame, fs_path: str):
         # do not include trailing slash in path
-        with NamedTemporaryFile(mode='w+b') as tmp_ref1:
-            df.to_feather(path=tmp_ref1.name, version=2)
-            self.fs.put(lpath=tmp_ref1.name, rpath=self.root_path + f"{fs_path}/data.feather")
+        with self.fs.open(self.root_path + f"{fs_path}/data.feather", 'wb') as fio:
+            df.to_feather(path=fio, version=2)
 
     def write_pickle_to_fs(self, obj: object, fs_path: str):
         # do not include trailing slash in path
@@ -80,7 +78,7 @@ class StorageAdaptor:
         if show_storage:
             return {
                 'size': dir_ls['size'],
-                'symbols': dates
+                'symbols': dates,
             }
         else:
             return dates
@@ -91,6 +89,12 @@ class StorageAdaptor:
     def remove_symbol_date(self, symbol: str, date: str, prefix: str):
         self.remove_fs_path(f"{prefix}/symbol={symbol}/date={date}/", recursive=True)
 
+    def read_sdf(self, symbol: str, date: str, prefix: str, columns: list=None) -> pd.DataFrame:
+        return self.read_df_from_fs(f"{prefix}/symbol={symbol}/date={date}/data.feather", columns)
+
+    def read_sdpickle(self, symbol: str, date: str, prefix: str) -> object:
+        return self.read_pickle_from_fs(f"{prefix}/symbol={symbol}/date={date}/object.pickle")
+
     def read_sd_data(self, symbol: str, date: str, prefix: str) -> Union[pd.DataFrame, object]:
         try:
             sd_data = self.read_sdf(symbol, date, prefix)
@@ -98,20 +102,14 @@ class StorageAdaptor:
             sd_data = self.read_sdpickle(symbol, date, prefix)
         return sd_data
 
-    def read_sdf(self, symbol: str, date: str, prefix: str, columns: list=None) -> pd.DataFrame:
-        return self.read_df_from_fs(f"{prefix}/symbol={symbol}/date={date}/data.feather", columns)
+    def write_sdf(self, sdf: pd.DataFrame, symbol: str, date: str, prefix: str):
+        self.write_df_to_fs(sdf, fs_path=f"{prefix}/symbol={symbol}/date={date}")
 
-    def read_sdpickle(self, symbol: str, date: str, prefix: str) -> object:
-        return self.read_pickle_from_fs(f"{prefix}/symbol={symbol}/date={date}/object.pickle")
+    def write_sdpickle(self, sd_obj: object, symbol: str, date: str, prefix: str):
+        self.write_pickle_to_fs(sd_obj, fs_path=f"{prefix}/symbol={symbol}/date={date}")
 
     def write_sd_data(self, sd_data: object, symbol: str, date: str, prefix: str):
         if type(sd_data) == pd.DataFrame:
             self.write_sdf(sd_data, symbol, date, prefix)
         else:
             self.write_sdpickle(sd_data, symbol, date, prefix)
-
-    def write_sdf(self, sdf: pd.DataFrame, symbol: str, date: str, prefix: str):
-        self.write_df_to_fs(sdf, fs_path=f"{prefix}/symbol={symbol}/date={date}")
-
-    def write_sdpickle(self, sd_obj: object, symbol: str, date: str, prefix: str):
-        self.write_pickle_to_fs(sd_obj, fs_path=f"{prefix}/symbol={symbol}/date={date}")

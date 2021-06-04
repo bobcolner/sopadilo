@@ -8,7 +8,7 @@ from workflows import sampler_task
 
 def run(config: dict) -> list:
     bar_data = []
-    if len(config['meta']['symbol_list']) > 0:    
+    if (config['meta'].get('symbol_list')) and (len(config['meta']['symbol_list']) > 0):
         for symbol in config['meta']['symbol_list']:
             try:
                 config['meta'].update({'symbol': symbol})
@@ -62,7 +62,7 @@ def get_dates_from_config(config: dict) -> pd.DataFrame:
     # find open market dates
     requested_open_dates = date_fu.get_open_market_dates(config['meta']['start_date'], config['meta']['end_date'])
     # all avialiable tick backfill dates
-    backfilled_dates = data_access.list(
+    backfilled_dates = data_access.list_sd_data(
         prefix='/data/trades',
         symbol=config['meta']['symbol'],
         source='remote',
@@ -71,8 +71,8 @@ def get_dates_from_config(config: dict) -> pd.DataFrame:
     requested_backfilled_dates = list(set(requested_open_dates).intersection(set(backfilled_dates)))
 
     # existing dates from results store
-    existing_config_id_dates = data_access.list(
-        prefix=f"/tick_samples/{config['meta']['config_id']}/bar_date",
+    existing_config_id_dates = data_access.list_sd_data(
+        prefix=f"/bars/{config['meta']['config_id']}/meta",
         symbol=config['meta']['symbol'],
         source='remote',
         )

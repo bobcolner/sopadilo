@@ -14,7 +14,21 @@ fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
 
-def list(prefix: str, symbol: str=None, source: str='remote', show_storage: bool=False) -> Union[list, dict]:
+def walk_prefix(prefix: str, source: str='remote') -> list:
+    if source == 'local':
+        walks = fs_local.fs.walk(g.DATA_LOCAL_PATH+prefix)
+    elif source == 'remote':
+        walks = fs_remote.fs.walk(g.DATA_S3_PATH+prefix)
+
+    df = pd.DataFrame(walks, columns=['dirpath','dirnames','filenames'])
+    df['filenames'] = df['filenames'].astype('string').str.strip("['']")
+    df['dirpath'] = df['dirpath'].str.lstrip(g.DATA_S3_PATH)
+    files_df = df[df.filenames != '']
+    paths = files_df.dirpath + '/' + files_df.filenames
+    return paths.to_list()
+
+
+def list_sd_data(symbol: str=None, prefix: str='', source: str='remote', show_storage: bool=False) -> Union[list, dict]:
     if symbol:
         if source == 'local':
             results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)
@@ -43,10 +57,19 @@ def fetch_sd_data(symbol: str, date: str, prefix: str, source: str='local_then_r
     return sd_date
 
 
+def presist_df(df: pd.DataFrame, fs_path: str, destination: str='remote'):
+    if destination in ['local', 'both']:
+        fs_local.write_df_to_fs(df, fs_path)
+
+    if destination in ['remote', 'both']:
+        fs_remote.write_df_to_fs(df, fs_path)
+
+
 def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str, destination: str='remote'):
     if destination in ['local', 'both']:
         fs_local.write_sd_data(sd_data, symbol, date, prefix)
-    elif destination in ['remote', 'both']:
+
+    if destination in ['remote', 'both']:
         fs_remote.write_sd_data(sd_data, symbol, date, prefix)
 
 
