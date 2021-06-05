@@ -4,7 +4,6 @@ DNS: raystation.westus2.cloudapp.azure.com
 name: raystation
 login: azureuser@raystation.westus2.cloudapp.azure.com
 
-
 az vm start --resource-group ray-vm --name raystation
 az vm stop --resource-group ray-vm --name raystation
 
@@ -15,14 +14,14 @@ ssh -i ~/.ssh/config azureuser@40.65.111.128
 # https://medium.com/analytics-vidhya/setting-up-jupyter-lab-instance-on-google-cloud-platform-3a7acaa732b7
 jupyter serverextension enable --py jupyterlab --sys-prefix
 jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
-
+# jl webui
 http://40.65.111.128:8888
+# ray webui
+http://40.65.111.128:1111
 
 # clone repo
-git config --global user.name "Bob Colner"
-git config --global user.email "bcolner@gmail.com"
 git clone https://github.com/bobcolner/sopadilo.git
 
-
+# copy data
 scp ~/QuantClarity/sopadilo/tmp/secerets.json \
 	azureuser@40.65.111.128:/home/azureuser/sopadilo/secerets.json

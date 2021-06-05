@@ -27,7 +27,7 @@ def run_sampler_flow(config: dict) -> list:
 
     daily_stats_df = get_dates_from_config(config)
 
-    if config['meta']['ray_on']:
+    if config['meta']['on_ray']:
         sample_date_ray = ray.remote(sampler_task.sample_date)
 
     results = []
@@ -41,7 +41,7 @@ def run_sampler_flow(config: dict) -> list:
                 config['sampler'].update({'renko_size': rs})
 
             # core distributed function: filter/sample ticks & presist output
-            if config['meta']['ray_on']:
+            if config['meta']['on_ray']:
                 bar_date = sample_date_ray.remote(config, row.date, progress_bar=False)
             else:
                 bar_date = sampler_task.sample_date(config, row.date, progress_bar=True)
@@ -51,7 +51,7 @@ def run_sampler_flow(config: dict) -> list:
             print('failed on symbol date:', config['meta']['symbol'], row.date)
             pass
 
-    if config['meta']['ray_on']:
+    if config['meta']['on_ray']:
         results = ray.get(results)  # wait until distrbuited work is finished
 
     return results
