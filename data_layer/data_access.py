@@ -22,9 +22,14 @@ def walk_prefix(prefix: str, source: str='remote') -> list:
 
     df = pd.DataFrame(walks, columns=['dirpath','dirnames','filenames'])
     df['filenames'] = df['filenames'].astype('string').str.strip("['']")
-    df['dirpath'] = df['dirpath'].str.lstrip(g.DATA_S3_PATH)
+    if source == 'remote':
+        df['dirpath'] = df['dirpath'].str.replace(g.DATA_S3_PATH, '')
+    elif source == 'local':
+        df['dirpath'] = df['dirpath'].str.replace(g.DATA_LOCAL_PATH, '')
+
     files_df = df[df.filenames != '']
     paths = files_df.dirpath + '/' + files_df.filenames
+
     return paths.to_list()
 
 

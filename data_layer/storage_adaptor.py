@@ -12,15 +12,10 @@ class StorageAdaptor:
         self.fs_type = fs_type
         self.root_path = root_path
 
-    def ls_fs_path(self, fs_path: str, show_storage: bool=False) -> dict:
-        output = {'paths': self.list_fs_path(fs_path)}
-        output.update({'size': self.storage_fs_path(fs_path)}) if show_storage else output
-        return output
-
-    def list_fs_path(self, fs_path: str) -> str:
+    def ls_fs_path(self, fs_path: str) -> str:
         return self.fs.ls(self.root_path + fs_path, refresh=True)
 
-    def storage_fs_path(self, fs_path: str) -> dict:
+    def du_fs_path(self, fs_path: str) -> dict:
         byte_len = self.fs.du(self.root_path + fs_path)
         if byte_len < 10 ** 3:
             humanized_size = {'Bytes': byte_len}
@@ -60,28 +55,22 @@ class StorageAdaptor:
             pickle.dump(obj, file=fio, protocol=4)  # protocol 5 only supported in python 3.8+ and not needed here
 
 ### high-level functions: /{ROOT_PATH}/{prefix}/symbol={symbol}/date={date}/data.feather
-
+    
     def ls_symbols(self, prefix: str, show_storage: bool=False) -> Union[list, dict]:
-        dir_ls = self.ls_fs_path(prefix, show_storage)
-        symbols = [path.split('symbol=')[1] for path in dir_ls['paths'] if path.split('/')[-1].startswith('symbol=')]
         if show_storage:
-            return {
-                'size': dir_ls['size'],
-                'symbols': symbols,
-            }
-        else:
-            return symbols
+            output = self.du_fs_path(prefix)
+        else:    
+            paths = self.ls_fs_path(prefix)
+            output = [path.split('symbol=')[1] for path in paths if path.split('/')[-1].startswith('symbol=')]
+        return output
 
     def ls_symbol_dates(self, symbol: str, prefix: str, show_storage: bool=False) -> Union[list, dict]:
-        dir_ls = self.ls_fs_path(f"{prefix}/symbol={symbol}", show_storage)
-        dates = [path.split('date=')[1] for path in dir_ls['paths'] if path.split('/')[-1].startswith('date=')]
         if show_storage:
-            return {
-                'size': dir_ls['size'],
-                'symbols': dates,
-            }
-        else:
-            return dates
+            output = self.du_fs_path(f"{prefix}/symbol={symbol}")
+        else:    
+            paths = self.ls_fs_path(f"{prefix}/symbol={symbol}")
+            output = [path.split('date=')[1] for path in paths if path.split('/')[-1].startswith('date=')]
+        return output
 
     def remove_symbol(self, symbol: str, prefix: str):
         self.remove_fs_path(f"{prefix}/symbol={symbol}/", recursive=True)
