@@ -28,8 +28,9 @@ dependencies:
   - pip
   - pip:
     - pandas-bokeh
-    - 'ray[default, tune]'
+    - 'ray[default]'
     - pudb
+    - b2
 
 # jupyter labextension install @jupyterlab/toc
 # jupyter labextension install @jupyterlab/git

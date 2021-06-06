@@ -11,7 +11,7 @@ config = {
         'symbol_list': all_syms,
         'start_date': '2019-01-01',
         'end_date': '2021-01-28',
-        'config_id': 'renko_v2',
+        'config_id': 'renko_v3',
         'presist_destination': 'both',
         'on_ray': True,
     },
