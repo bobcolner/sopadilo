@@ -1,6 +1,6 @@
 #! /bin/bash
 
-apt-get update -y && apt-get install -qq -y \
+sudo apt-get update -y && apt-get install -qq -y \
     htop \
     nano \
     wget \
@@ -8,7 +8,7 @@ apt-get update -y && apt-get install -qq -y \
     curl \
     build-essential
 
-apt-get -qq -y autoremove && \
+sudo apt-get -qq -y autoremove && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* /var/log/dpkg.log
 
