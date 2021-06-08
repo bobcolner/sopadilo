@@ -9,8 +9,8 @@ def get_filesystem(fs_type: str) -> fsspec.filesystem:
             protocol='filecache',
             target_protocol='s3',
             target_options={
-                'key': g.B2_ACCESS_KEY_ID,
-                'secret': g.B2_SECRET_ACCESS_KEY,
+                'key': g.B2_APPLICATION_KEY_ID,
+                'secret': g.B2_APPLICATION_KEY,
                 'client_kwargs': {'endpoint_url': g.B2_ENDPOINT_URL}
                 },
             cache_storage='./tmp/fsspec_cache',
@@ -19,8 +19,8 @@ def get_filesystem(fs_type: str) -> fsspec.filesystem:
     elif fs_type == 's3':
         fs = fsspec.filesystem(
             protocol='s3',
-            key=g.B2_ACCESS_KEY_ID,
-            secret=g.B2_SECRET_ACCESS_KEY,
+            key=g.B2_APPLICATION_KEY_ID,
+            secret=g.B2_APPLICATION_KEY,
             client_kwargs={'endpoint_url': g.B2_ENDPOINT_URL},
             )
     elif fs_type == 'local':

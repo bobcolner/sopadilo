@@ -1,6 +1,6 @@
 import ray
 from workflows import sampler_flow
-from workflows.configs import renko_v1, renko_v2
+from workflows.configs import renko_v1, renko_v2, renko_v3
 
 
 config = renko_v3.config

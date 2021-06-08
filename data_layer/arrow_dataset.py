@@ -22,8 +22,8 @@ def get_dataset(prefix: str, symbol: str=None, fs_type: str='local', schema=None
         )
     elif fs_type in ['s3', 'remote']:
         s3  = S3FileSystem(
-            access_key=g.B2_ACCESS_KEY_ID,
-            secret_key=g.B2_SECRET_ACCESS_KEY,
+            access_key=g.B2_APPLICATION_KEY_ID,
+            secret_key=g.B2_APPLICATION_KEY,
             endpoint_override=g.B2_ENDPOINT_URL
         )
         ds = dataset(

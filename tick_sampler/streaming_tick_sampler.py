@@ -48,7 +48,7 @@ def reset_state(thresh: dict={}) -> dict:
     state['stat']['price_jma_return'] = 0
     state['stat']['tick_count'] = 0
     state['stat']['volume'] = 0
-    state['stat']['dollars'] = 0
+    state['stat']['dollar_value'] = 0
     state['stat']['tick_imbalance'] = 0
     state['stat']['volume_imbalance'] = 0
     state['stat']['dollar_imbalance'] = 0
@@ -72,7 +72,7 @@ def state_to_bar(state: dict) -> dict:
         'duration_td': state['trades']['close_at'][-1] - state['trades']['close_at'][0],
         'tick_count': state['stat']['tick_count'],
         'volume': state['stat']['volume'],
-        'dollars': state['stat']['dollars'],
+        'dollar_value': state['stat']['dollar_value'],
         'tick_imbalance': state['stat']['tick_imbalance'],
         'volume_imbalance': state['stat']['volume_imbalance'],
         'price_high': state['stat']['price_high'],
@@ -171,7 +171,7 @@ def update_bar_state(state: dict, bars: list, close_at: Timestamp, price: float,
         # 'stats'
         state['stat']['tick_count'] += tick_count
         state['stat']['volume'] += volume
-        state['stat']['dollars'] += price * volume
+        state['stat']['dollar_value'] += price * volume
         # price
         state['stat']['price_low'] = price_low if price_low < state['stat']['price_low'] else state['stat']['price_low']
         state['stat']['price_high'] = price_high if price_high > state['stat']['price_high'] else state['stat']['price_high']

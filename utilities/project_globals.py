@@ -26,8 +26,8 @@ ALPHAVANTAGE_API_KEY = get_global_value('ALPHAVANTAGE_API_KEY', secerets_dict)
 
 TIINGO_API_KEY = get_global_value('TIINGO_API_KEY', secerets_dict)
 
-B2_ACCESS_KEY_ID = get_global_value('B2_ACCESS_KEY_ID', secerets_dict)
+B2_APPLICATION_KEY_ID = get_global_value('B2_APPLICATION_KEY_ID', secerets_dict)
 
-B2_SECRET_ACCESS_KEY = get_global_value('B2_SECRET_ACCESS_KEY', secerets_dict)
+B2_APPLICATION_KEY = get_global_value('B2_APPLICATION_KEY', secerets_dict)
 
 B2_ENDPOINT_URL = get_global_value('B2_ENDPOINT_URL', secerets_dict)
