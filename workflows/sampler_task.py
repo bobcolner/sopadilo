@@ -69,7 +69,6 @@ def sample_date(config: dict, date: str, progress_bar: bool=True) -> dict:
 
 
 def presist_output(bar_date: dict, date: str, destination: str='remote'):
-
     # save bars_df
     data_access.presist_sd_data(
         sd_data=bar_date['bars_df'], 
