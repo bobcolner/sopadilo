@@ -12,8 +12,12 @@ class StorageAdaptor:
         self.fs_type = fs_type
         self.root_path = root_path
 
-    def ls_fs_path(self, fs_path: str) -> str:
-        return self.fs.ls(self.root_path + fs_path, refresh=True)
+    def ls_fs_path(self, fs_path: str) -> list:
+        try:
+            output = self.fs.ls(self.root_path + fs_path, refresh=True)
+        except FileNotFoundError:
+            output = []
+        return output
 
     def du_fs_path(self, fs_path: str) -> dict:
         byte_len = self.fs.du(self.root_path + fs_path)
