@@ -1,5 +1,5 @@
 # conda env create --force -f conda_quant.yaml
-name: quant
+name: quant2
 channels:
   - conda-forge
   - defaults

@@ -3,11 +3,11 @@ from data_layer import data_access
 from sample_features import ticks_to_bar
 
 
-def sync_symbol_date(clock_symbol: str, sync_symbol: str, date: str, config_id: str):
+def sync_symbol_date(clock_symbol: str, sync_symbol: str, date: str, config: dict):
     # get base symbol bars
-    base_bars = data_access.fetch_sd_data(clock_symbol, date, prefix=f"/bars/{config_id}/df")
+    base_bars = data_access.fetch_sd_data(clock_symbol, date, prefix=f"/bars/{config['config_id']}/df")
     # get sync symbol ticks
-    sync_ticks = fetch_clean_ticks(sync_symbol, date, config_id)
+    sync_ticks = fetch_clean_ticks(sync_symbol, date, config_id=config['config_id'])
     # build syncbar for each base symbol bar
     sync_bars = []
     for bar in base_bars.itertuples():
@@ -28,8 +28,8 @@ def sync_symbol_date(clock_symbol: str, sync_symbol: str, date: str, config_id: 
     data_access.presist_sd_data(pd.DataFrame(sync_bars).reset_index(drop=True),
         symbol=sync_symbol,
         date=date,
-        prefix=f"/bars/{config_id}/sync_bars/clock_symbol={clock_symbol}",
-        destination='local',
+        prefix=f"/bars/{config['config_id']}/sync_bars/clock_symbol={clock_symbol}",
+        destination=config['destination'],
         )
 
 

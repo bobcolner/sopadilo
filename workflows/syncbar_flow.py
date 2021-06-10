@@ -3,15 +3,12 @@ from utilities import date_fu
 from data_layer import data_access
 from workflows.syncbar_task import sync_symbol_date
 
-start_date ='2019-01-01'
-end_date ='2019-03-01'
 
+def run(config: dict):
 
-def syncbar_flow(config_id: str, on_ray: bool=False):
-
-    all_symbols = data_access.list_sd_data(prefix=f"/bars/{config_id}/df", source='local')
-    large_caps, mid_caps = segment_symbols(all_symbols)
-    if on_ray:
+    all_symbols = data_access.list_sd_data(prefix=f"/bars/{config['config_id']}/df", source=config['source'])
+    large_caps, mid_caps = segment_symbols(all_symbols, start_date=config['start_date'], end_date=config['end_date'])
+    if config['on_ray']:
         sync_symbol_date_ray = ray.remote(sync_symbol_date)
         futures = []
 
@@ -20,34 +17,34 @@ def syncbar_flow(config_id: str, on_ray: bool=False):
             print('syncing symbols:', sym_midcap, sym_largecap)
             if sym_largecap == sym_midcap:
                 continue
-            
+
             dates = get_dates(
                 symbol=sym_largecap,
-                prefix = f"/bars/{config_id}/sync_bars/clock_symbol={sym_midcap}",
+                prefix = f"/bars/{config['config_id']}/sync_bars/clock_symbol={sym_midcap}",
                 type='remaining',
-                source='local',
+                config=config,
             )
             print('scheduled', len(dates), 'dates')  # logging
             for date in dates:
-                if on_ray:
+                if config['on_ray']:
                     future = sync_symbol_date_ray.remote(
-                        clock_symbol=sym_midcap, 
-                        sync_symbol=sym_largecap, 
-                        date=date, 
-                        config_id=config_id,
+                        clock_symbol=sym_midcap,
+                        sync_symbol=sym_largecap,
+                        date=date,
+                        config=config,
                         )
                     futures.append(future)
                 else:
-                    sync_symbol_date(clock_symbol=sym_midcap, sync_symbol=sym_largecap, date=date, config_id=config_id)
-    if on_ray:
+                    sync_symbol_date(clock_symbol=sym_midcap, sync_symbol=sym_largecap, date=date, config=config)
+    if config['on_ray']:
         ray.get(futures)
 
 
-def get_dates(symbol: str, prefix: str, type: str='remaining', source: str='local') -> tuple:
+def get_dates(symbol: str, prefix: str, type: str, config: dict) -> tuple:
     # find open market dates
-    requested_dates = date_fu.get_open_market_dates(start_date, end_date)
+    requested_dates = date_fu.get_open_market_dates(config['start_date'], config['end_date'])
     # all existing dates
-    existing_dates = data_access.list_sd_data(symbol, prefix, source)
+    existing_dates = data_access.list_sd_data(symbol, prefix, source=config['source'])
     if type == 'existing':
         # requested & avialiable dates
         dates = list(set(requested_dates).intersection(set(existing_dates)))
@@ -61,7 +58,7 @@ def get_dates(symbol: str, prefix: str, type: str='remaining', source: str='loca
     return dates
 
 
-def segment_symbols(sym_list: list) -> tuple:
+def segment_symbols(sym_list: list, start_date: str, end_date: str) -> tuple:
 
     df = data_access.fetch_market_daily(start_date, end_date)
     mdf = df.loc[df.symbol.isin(sym_list)]
