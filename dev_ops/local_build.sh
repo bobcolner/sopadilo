@@ -2,11 +2,11 @@
 
 sudo apt-get update -y && apt-get install -qq -y \
     htop \
+    nethogs \
     nano \
     wget \
     git \
-    curl \
-    build-essential
+    curl
 
 sudo apt-get -qq -y autoremove && \
     apt-get autoclean && \

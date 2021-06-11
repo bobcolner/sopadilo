@@ -1,4 +1,6 @@
 # conda env create --force -f conda_quant.yaml
+# conda env update -n quant -f dev_ops/conda_quant.yaml
+
 name: quant2
 channels:
   - conda-forge
@@ -22,6 +24,7 @@ dependencies:
   - matplotlib
   - bokeh
   - tqdm
+  - tenacity
   - requests
   - fsspec
   - s3fs
