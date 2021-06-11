@@ -3,6 +3,7 @@
 sudo apt-get update -y && apt-get install -qq -y \
     htop \
     nethogs \
+    ncdu \
     nano \
     wget \
     git \

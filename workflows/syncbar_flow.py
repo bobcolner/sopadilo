@@ -16,17 +16,18 @@ def run(config: dict):
 
     for sym_midcap in mid_caps:
         for sym_largecap in large_caps:
-            print('syncing symbols:', sym_midcap, sym_largecap)
             if sym_largecap == sym_midcap:
                 continue
 
             dates = get_dates(
                 symbol=sym_largecap,
                 prefix = f"/bars/{config['config_id']}/sync_bars/clock_symbol={sym_midcap}",
+                start_date=config['start_date'],
+                end_date=config['end_date'],
                 type='remaining',
-                config=config,
+                source=config['source'],
             )
-            print('scheduled', len(dates), 'dates')  # logging
+            print('syncing symbols:', sym_midcap, sym_largecap, 'scheduled', len(dates), 'dates')  # logging
             for date in dates:
                 if config['on_ray']:
                     future = sync_symbol_date_ray.remote(
@@ -42,11 +43,11 @@ def run(config: dict):
         ray.get(futures)
 
 
-def get_dates(symbol: str, prefix: str, type: str, config: dict) -> tuple:
+def get_dates(symbol: str, prefix: str, start_date: str, end_date: str, type: str, source: str) -> tuple:
     # find open market dates
-    requested_dates = date_fu.get_open_market_dates(config['start_date'], config['end_date'])
+    requested_dates = date_fu.get_open_market_dates(start_date, end_date)
     # all existing dates
-    existing_dates = data_access.list_sd_data(symbol, prefix, source=config['source'])
+    existing_dates = data_access.list_sd_data(symbol, prefix, source)
     if type == 'existing':
         # requested & avialiable dates
         dates = list(set(requested_dates).intersection(set(existing_dates)))
@@ -64,8 +65,8 @@ def segment_symbols(sym_list: list, start_date: str, end_date: str) -> tuple:
 
     df = data_access.fetch_market_daily(start_date, end_date)
     mdf = df.loc[df.symbol.isin(sym_list)]
-    mdf['price_range'] = mdf['high'] - mdf['low']
-    mdf['range_pct_value'] = mdf['price_range'] / mdf['vwap']
+    mdf.loc[:, 'price_range'] = mdf['high'] - mdf['low']
+    mdf.loc[:, 'range_pct_value'] = mdf['price_range'] / mdf['vwap']
     gdf = mdf.groupby('symbol').mean()
     gdf_pct = gdf.describe(percentiles=[0.2, 0.5, 0.8])
     large_symbols = gdf[gdf.dollar_total > gdf_pct.loc['80%', 'dollar_total']]
