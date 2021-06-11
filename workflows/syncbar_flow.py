@@ -2,8 +2,10 @@ import ray
 from utilities import date_fu
 from data_layer import data_access
 from workflows.syncbar_task import sync_symbol_date
+from tenacity import retry
 
 
+@retry
 def run(config: dict):
 
     all_symbols = data_access.list_sd_data(prefix=f"/bars/{config['config_id']}/df", source=config['source'])
