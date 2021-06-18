@@ -9,9 +9,9 @@ b2 sync [-h] [--noProgress] [--dryRun] [--allowEmptySource] [--excludeAllSymlink
  		[--sourceServerSideEncryption {SSE-C}] [--sourceServerSideEncryptionAlgorithm {AES256}] \
  		[--skipNewer | --replaceNewer] [--delete | --keepDays DAYS] source destination
 
-b2 sync --threads 44 --compareVersions=none \
-    b2://polygon-equities \
-    /Users/bobcolner/QuantClarity/sopadilo/tmp/local_data
+b2 sync --threads 33 --compareVersions=none \
+    b2://polygon-equities/bars \
+    /Users/bobcolner/QuantClarity/sopadilo/tmp/local_data/bars
 
 
 b2 sync --threads 33 \

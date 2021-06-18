@@ -3,9 +3,18 @@ import numpy as np
 import pandas as pd
 
 
-def fill_gap(bar_1: dict, bar_2: dict, renko_size: float, fill_col: str) -> list:
+def bdf_to_list(bdf: pd.DataFrame) -> list:
+    bar_dates = []
+    for date in bdf.date.unique():
+        bar_date = bdf[bdf.date==date].to_dict(orient='records')
+        bar_dates.append(bar_date)
+
+    return bar_dates
+
+
+def fill_gap(bar_1: dict, bar_2: dict, fill_size: float, fill_col: str) -> list:
     
-    num_steps = round(abs(bar_1[fill_col] - bar_2[fill_col]) / renko_size) * 2
+    num_steps = round(abs(bar_1[fill_col] - bar_2[fill_col]) / fill_size) * 2
     fill_values = list(np.linspace(start=bar_1[fill_col], stop=bar_2[fill_col], num=num_steps))
     fill_values.append(bar_2[fill_col])  # add extra buffer bar
     fill_dict = {
@@ -16,31 +25,26 @@ def fill_gap(bar_1: dict, bar_2: dict, renko_size: float, fill_col: str) -> list
     return pd.DataFrame(fill_dict).to_dict(orient='records')
 
 
-def fill_gaps_dates(bar_dates_: list, fill_col: str) -> pd.DataFrame:
-    import copy
-    bar_dates = copy.deepcopy(bar_dates_)
+def fill_gaps_dates(bdf: pd.DataFrame, fill_col: str) -> pd.DataFrame:
+    
+    bar_dates = bdf_to_list(bdf)
 
     for idx, bar_date in enumerate(bar_dates):
         if idx == 0:
             continue
 
-        try:
-            gap_fill = fill_gap(
-                bar_1=bar_dates[idx-1]['bars'][-1],
-                bar_2=bar_dates[idx]['bars'][0],
-                renko_size=bar_dates[idx]['thresh']['sampler']['renko_size'],
-                fill_col=fill_col,
-            )
-            bar_dates[idx-1]['bars'] = bar_dates[idx-1]['bars'] + gap_fill
-        except Exception as e:
-            print(e)
-            print('gap fill failed: ', bar_date['date'])
-            continue
+        gap_fill = fill_gap(
+            bar_1=bar_dates[idx-1][-1],
+            bar_2=bar_dates[idx][0],
+            fill_size=max(bar_dates[idx][0]['price_vwap'] / 5000, 0.005),
+            fill_col=fill_col,
+        )
+        bar_dates[idx-1] = bar_dates[idx-1] + gap_fill
 
     # build continous 'stacked' bars df
     stacked = []
     for bar_date in bar_dates:
-        stacked = stacked + bar_date['bars']
+        stacked = stacked + bar_date
 
     return pd.DataFrame(stacked)
 

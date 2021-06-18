@@ -10,7 +10,7 @@ def get_dataset(prefix: str, symbol: str=None, fs_type: str='local', schema=None
     if symbol is not None:
         path_str = f"{prefix}/symbol={symbol}"
     else:
-        path_str = f"{prefix}"
+        path_str = prefix
 
     if fs_type == 'local':
         ds = dataset(
