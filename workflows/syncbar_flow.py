@@ -2,10 +2,8 @@ import ray
 from utilities import date_fu
 from data_layer import data_access
 from workflows.syncbar_task import sync_symbol_date
-from tenacity import retry
 
 
-@retry
 def run(config: dict):
 
     all_symbols = data_access.list_sd_data(prefix=f"/bars/{config['config_id']}/df", source=config['source'])
@@ -19,12 +17,12 @@ def run(config: dict):
             if sym_largecap == sym_midcap:
                 continue
 
-            dates = get_dates(
+            dates = query_dates(
                 symbol=sym_largecap,
                 prefix = f"/bars/{config['config_id']}/sync_bars/clock_symbol={sym_midcap}",
                 start_date=config['start_date'],
                 end_date=config['end_date'],
-                type='remaining',
+                query_type='remaining',
                 source=config['source'],
             )
             print('syncing symbols:', sym_midcap, sym_largecap, 'scheduled', len(dates), 'dates')  # logging
@@ -43,15 +41,15 @@ def run(config: dict):
         ray.get(futures)
 
 
-def get_dates(symbol: str, prefix: str, start_date: str, end_date: str, type: str, source: str) -> tuple:
+def query_dates(symbol: str, prefix: str, start_date: str, end_date: str, query_type: str, source: str) -> list:
     # find open market dates
     requested_dates = date_fu.get_open_market_dates(start_date, end_date)
     # all existing dates
     existing_dates = data_access.list_sd_data(symbol, prefix, source)
-    if type == 'existing':
+    if query_type == 'existing':
         # requested & avialiable dates
         dates = list(set(requested_dates).intersection(set(existing_dates)))
-    elif type == 'remaining':
+    elif query_type == 'remaining':
         # requested & remaiing dates
         dates = list(set(requested_dates).difference(set(existing_dates)))
 

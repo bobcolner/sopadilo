@@ -33,17 +33,25 @@ def walk_prefix(prefix: str, source: str='remote') -> list:
     return paths.to_list()
 
 
+def presist_df(df: pd.DataFrame, fs_path: str, destination: str='remote'):
+    if destination in ['local', 'both']:
+        fs_local.write_df_to_fs(df, fs_path)
+
+    if destination in ['remote', 'both']:
+        fs_remote.write_df_to_fs(df, fs_path)
+
+
 def list_sd_data(symbol: str=None, prefix: str='', source: str='remote', show_storage: bool=False) -> Union[list, dict]:
     if symbol:
         if source == 'local':
-            results = fs_local.ls_symbol_dates(symbol, prefix, show_storage)
+            results = fs_local.list_symbol_dates(symbol, prefix, show_storage)
         elif source == 'remote':
-            results = fs_remote.ls_symbol_dates(symbol, prefix, show_storage)
+            results = fs_remote.list_symbol_dates(symbol, prefix, show_storage)
     else:
         if source == 'local':
-            results = fs_local.ls_symbols(prefix, show_storage)
+            results = fs_local.list_symbols(prefix, show_storage)
         elif source == 'remote':
-            results = fs_remote.ls_symbols(prefix, show_storage)
+            results = fs_remote.list_symbols(prefix, show_storage)
 
     return results
 
@@ -60,14 +68,6 @@ def fetch_sd_data(symbol: str, date: str, prefix: str, source: str='local_then_r
         sd_date = fs_local.read_sd_data(symbol, date, prefix)
 
     return sd_date
-
-
-def presist_df(df: pd.DataFrame, fs_path: str, destination: str='remote'):
-    if destination in ['local', 'both']:
-        fs_local.write_df_to_fs(df, fs_path)
-
-    if destination in ['remote', 'both']:
-        fs_remote.write_df_to_fs(df, fs_path)
 
 
 def presist_sd_data(sd_data: Union[object, pd.DataFrame], symbol: str, date: str, prefix: str, destination: str='remote'):

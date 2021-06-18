@@ -1,6 +1,6 @@
 #! /bin/bash
 
-sudo apt-get update -y && apt-get install -qq -y \
+apt-get update -y && apt-get install -qq -y \
     htop \
     nethogs \
     ncdu \
@@ -9,7 +9,7 @@ sudo apt-get update -y && apt-get install -qq -y \
     git \
     curl
 
-sudo apt-get -qq -y autoremove && \
+apt-get -qq -y autoremove && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* /var/log/dpkg.log
 

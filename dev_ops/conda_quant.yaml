@@ -13,6 +13,8 @@ dependencies:
   - scipy
   - scikit-learn
   - statsmodels
+  - matplotlib
+  - bokeh
   - pyarrow >= 4.0
   - pandas >= 1.2
   - pandas_market_calendars
@@ -21,8 +23,7 @@ dependencies:
   - jupyterlab < 3.0
   - jupyterlab-git
   - nbdime
-  - matplotlib
-  - bokeh
+  - prefect
   - tqdm
   - tenacity
   - requests
@@ -37,9 +38,8 @@ dependencies:
 
 # jupyter labextension install @jupyterlab/toc
 # jupyter labextension install @jupyterlab/git
-  # https://github.com/jupyterlab/jupyterlab-git/tree/jlab-2
 # jupyter labextension install nbdime-jupyterlab
 # jupyter labextension install jupyterlab-execute-time
-
+# pip install jupyterlab_execute_time [3.0+]
 # jupyter labextension install @krassowski/jupyterlab_go_to_definition
 # jupyter labextension install @jupyterlab/shortcutui

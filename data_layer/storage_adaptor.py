@@ -12,9 +12,9 @@ class StorageAdaptor:
         self.fs_type = fs_type
         self.root_path = root_path
 
-    def ls_fs_path(self, fs_path: str) -> list:
+    def ls_fs_path(self, fs_path: str, refresh: bool=True) -> list:
         try:
-            output = self.fs.ls(self.root_path + fs_path, refresh=True)
+            output = self.fs.ls(self.root_path + fs_path, refresh=refresh)
         except FileNotFoundError:
             output = []
         return output
@@ -29,6 +29,7 @@ class StorageAdaptor:
             humanized_size = {'MB': round(byte_len / 10 ** 6, 1)}
         else:
             humanized_size = {'GB': round(byte_len / 10 ** 9, 2)}
+
         return humanized_size
 
     def download_fs_path(self, fs_path: str, local_path: str, recursive: bool=False):
@@ -37,7 +38,7 @@ class StorageAdaptor:
     def upload_local_path(self, local_path: str, fs_path: str, recursive: bool=False):
         self.fs.put(lpath=local_path, rpath=self.root_path + fs_path, recursive=recursive)
 
-    def remove_fs_path(self, fs_path: str, recursive: bool=False):
+    def rm_fs_path(self, fs_path: str, recursive: bool=False):
         self.fs.rm(self.root_path + fs_path, recursive)
 
     def read_pickle_from_fs(self, fs_path: str) -> object:
@@ -60,7 +61,7 @@ class StorageAdaptor:
 
 ### high-level functions: /{ROOT_PATH}/{prefix}/symbol={symbol}/date={date}/data.feather
     
-    def ls_symbols(self, prefix: str, show_storage: bool=False) -> Union[list, dict]:
+    def list_symbols(self, prefix: str, show_storage: bool=False) -> Union[list, dict]:
         if show_storage:
             output = self.du_fs_path(prefix)
         else:    
@@ -68,7 +69,7 @@ class StorageAdaptor:
             output = [path.split('symbol=')[1] for path in paths if path.split('/')[-1].startswith('symbol=')]
         return output
 
-    def ls_symbol_dates(self, symbol: str, prefix: str, show_storage: bool=False) -> Union[list, dict]:
+    def list_symbol_dates(self, symbol: str, prefix: str, show_storage: bool=False) -> Union[list, dict]:
         if show_storage:
             output = self.du_fs_path(f"{prefix}/symbol={symbol}")
         else:    
@@ -77,10 +78,10 @@ class StorageAdaptor:
         return output
 
     def remove_symbol(self, symbol: str, prefix: str):
-        self.remove_fs_path(f"{prefix}/symbol={symbol}/", recursive=True)
+        self.rm_fs_path(f"{prefix}/symbol={symbol}/", recursive=True)
 
     def remove_symbol_date(self, symbol: str, date: str, prefix: str):
-        self.remove_fs_path(f"{prefix}/symbol={symbol}/date={date}/", recursive=True)
+        self.rm_fs_path(f"{prefix}/symbol={symbol}/date={date}/", recursive=True)
 
     def read_sdf(self, symbol: str, date: str, prefix: str, columns: list=None) -> pd.DataFrame:
         return self.read_df_from_fs(f"{prefix}/symbol={symbol}/date={date}/data.feather", columns)
