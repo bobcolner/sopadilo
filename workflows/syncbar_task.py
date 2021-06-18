@@ -25,7 +25,8 @@ def sync_symbol_date(clock_symbol: str, sync_symbol: str, date: str, config: dic
         sync_bars.append(syncbar)
 
     print('clock:', clock_symbol, 'sync:', sync_symbol, date)  # logging
-    data_access.presist_sd_data(pd.DataFrame(sync_bars).reset_index(drop=True),
+    data_access.presist_sd_data(
+        sd_data=pd.DataFrame(sync_bars).reset_index(drop=True),
         symbol=sync_symbol,
         date=date,
         prefix=f"/bars/{config['config_id']}/sync_bars/clock_symbol={clock_symbol}",
@@ -33,7 +34,7 @@ def sync_symbol_date(clock_symbol: str, sync_symbol: str, date: str, config: dic
         )
 
 
-def fetch_clean_ticks(symbol: str, date: str, config_id: str):
+def fetch_clean_ticks(symbol: str, date: str, config_id: str) -> pd.DataFrame:
     # get symbol-date ticks
     ticks_df = data_access.fetch_sd_data(symbol, date, prefix="/data/trades")
     # get precomputed filter idx
@@ -42,3 +43,20 @@ def fetch_clean_ticks(symbol: str, date: str, config_id: str):
     ticks_df = ticks_df.drop(index=fidx.index)
     ticks_df = ticks_df.set_index('sip_dt').tz_localize('UTC').tz_convert('America/New_York')
     return ticks_df
+
+
+def segment_symbols(sym_list: list, start_date: str, end_date: str) -> tuple:
+
+    df = data_access.fetch_market_daily(start_date, end_date)
+    mdf = df.loc[df.symbol.isin(sym_list)]
+    mdf.loc[:, 'price_range'] = mdf['high'] - mdf['low']
+    mdf.loc[:, 'range_pct_value'] = mdf['price_range'] / mdf['vwap']
+    gdf = mdf.groupby('symbol').mean()
+    gdf_pct = gdf.describe(percentiles=[0.2, 0.5, 0.8])
+    large_symbols = gdf[gdf.dollar_total > gdf_pct.loc['80%', 'dollar_total']]
+    mid_symbols = gdf[
+        (gdf.dollar_total > gdf_pct.loc['20%', 'dollar_total']) & 
+        (gdf.dollar_total < gdf_pct.loc['50%', 'dollar_total']) &
+        (gdf.dollar_total > gdf_pct.loc['50%', 'range_pct_value'])
+    ]
+    return large_symbols.index.to_list(), mid_symbols.index.to_list()

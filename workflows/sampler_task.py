@@ -8,7 +8,7 @@ from tick_sampler import streaming_tick_sampler, labels
 
 def sample_date(config: dict, date: str, progress_bar: bool=True) -> dict:
     
-    print('running', config['meta']['symbol'], date)  # logging
+    print('sampling ticks', config['meta']['symbol'], date)  # logging
 
     tick_filter = streaming_tick_filter.StreamingTickFilter(**config['filter'])
     tick_sampler = streaming_tick_sampler.StreamingTickSampler(config['sampler'])
