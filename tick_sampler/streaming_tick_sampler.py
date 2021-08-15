@@ -22,6 +22,53 @@ class StreamingTickSampler:
             self.update(close_at=tick.nyc_dt, price=tick.price, volume=tick.volume, side=tick.side, price_jma=tick.price_jma)
 
 
+def update_bar_state(state: dict, bars: list, close_at: Timestamp, price: float, volume: int, side: int,
+    price_jma: float, price_high: float=None, price_low: float=None, tick_count: int=1) -> tuple:
+
+    # basic duration update (always available)
+    state['batches']['close_at'].append(close_at)
+    state['stat']['duration_td'] = state['batches']['close_at'][-1] - state['batches']['close_at'][0]
+
+    # adapot to either single ticks or batchces of ticks
+    price_high = price if price_high is None else price_high
+    price_low = price if price_low is None else price_low
+
+    if tick_count > 0:
+        # append tick
+        state['trades']['close_at'].append(close_at)
+        state['trades']['tick_count'].append(tick_count)
+        state['trades']['volume'].append(volume)
+        state['trades']['side'].append(side)
+        state['trades']['price'].append(price)
+        state['trades']['price_high'].append(price_high)
+        state['trades']['price_low'].append(price_low)
+        state['trades']['price_jma'].append(price_jma)
+        # 'stats'
+        state['stat']['tick_count'] += tick_count
+        state['stat']['volume'] += volume
+        state['stat']['dollar_value'] += price * volume
+        # price
+        state['stat']['price_low'] = price_low if price_low < state['stat']['price_low'] else state['stat']['price_low']
+        state['stat']['price_high'] = price_high if price_high > state['stat']['price_high'] else state['stat']['price_high']
+        state['stat']['price_range'] = state['stat']['price_high'] - state['stat']['price_low']
+        state['stat']['price_return'] = price - state['trades']['price'][0]
+        state['stat']['price_jma_return'] = price_jma - state['trades']['price_jma'][0]
+        state['stat']['last_bar_return'] = bars[-1]['price_return'] if len(bars) > 0 else 0
+        # imbalances
+        state['stat']['tick_imbalance'] += side
+        state['stat']['volume_imbalance'] += (side * volume)
+        state['stat']['dollar_imbalance'] += (side * volume * price)
+
+    # check state tirggered sample threshold
+    state = check_bar_thresholds(state)
+    if state['stat']['bar_trigger'] != 'waiting':
+        new_bar = state_to_bar(state)
+        bars.append(new_bar)
+        state = reset_state(state['thresh'])
+
+    return state, bars
+
+
 def reset_state(thresh: dict={}) -> dict:
     state = {}    
     state['thresh'] = thresh
@@ -145,50 +192,3 @@ def check_bar_thresholds(state: dict) -> dict:
         state['stat']['bar_trigger'] = 'waiting'
 
     return state
-
-
-def update_bar_state(state: dict, bars: list, close_at: Timestamp, price: float, volume: int, side: int,
-    price_jma: float, price_high: float=None, price_low: float=None, tick_count: int=1) -> tuple:
-
-    # basic duration update (always available)
-    state['batches']['close_at'].append(close_at)
-    state['stat']['duration_td'] = state['batches']['close_at'][-1] - state['batches']['close_at'][0]
-
-    # adapot to either single ticks or batchces of ticks
-    price_high = price if price_high is None else price_high
-    price_low = price if price_low is None else price_low
-
-    if tick_count > 0:
-        # append tick
-        state['trades']['close_at'].append(close_at)
-        state['trades']['tick_count'].append(tick_count)
-        state['trades']['volume'].append(volume)
-        state['trades']['side'].append(side)
-        state['trades']['price'].append(price)
-        state['trades']['price_high'].append(price_high)
-        state['trades']['price_low'].append(price_low)
-        state['trades']['price_jma'].append(price_jma)
-        # 'stats'
-        state['stat']['tick_count'] += tick_count
-        state['stat']['volume'] += volume
-        state['stat']['dollar_value'] += price * volume
-        # price
-        state['stat']['price_low'] = price_low if price_low < state['stat']['price_low'] else state['stat']['price_low']
-        state['stat']['price_high'] = price_high if price_high > state['stat']['price_high'] else state['stat']['price_high']
-        state['stat']['price_range'] = state['stat']['price_high'] - state['stat']['price_low']
-        state['stat']['price_return'] = price - state['trades']['price'][0]
-        state['stat']['price_jma_return'] = price_jma - state['trades']['price_jma'][0]
-        state['stat']['last_bar_return'] = bars[-1]['price_return'] if len(bars) > 0 else 0
-        # imbalances
-        state['stat']['tick_imbalance'] += side
-        state['stat']['volume_imbalance'] += (side * volume)
-        state['stat']['dollar_imbalance'] += (side * volume * price)
-
-    # check state tirggered sample threshold
-    state = check_bar_thresholds(state)
-    if state['stat']['bar_trigger'] != 'waiting':
-        new_bar = state_to_bar(state)
-        bars.append(new_bar)
-        state = reset_state(state['thresh'])
-
-    return state, bars

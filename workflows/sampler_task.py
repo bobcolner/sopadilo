@@ -45,7 +45,7 @@ def sample_date(config: dict, date: str, progress_bar: bool=True) -> dict:
             risk_level=config['sampler']['renko_size'],
             horizon_mins=config['sampler']['max_duration_td'].total_seconds() / 60,
             reward_ratios=config['sampler']['reward_ratios'],
-            )
+        )
     # copy key meta-data to bars
     bdf = pd.DataFrame(bars)
     bdf['symbol'] = config['meta']['symbol']
@@ -57,11 +57,9 @@ def sample_date(config: dict, date: str, progress_bar: bool=True) -> dict:
         'symbol': config['meta']['symbol'],
         'date': date,
         'config': config,
-        'ticks_df': tdf,
         'filtered_df': tdf.loc[tdf['status'].str.startswith('filtered')].status,
         'bars_df': bdf,
-        'bars': bars,
-        }
+    }
     if config['meta']['presist_destination'] in ['remote', 'local', 'both']:
         presist_output(bar_date, date, destination=config['meta']['presist_destination'])
 
@@ -76,11 +74,10 @@ def presist_output(bar_date: dict, date: str, destination: str='remote'):
         date=date, 
         prefix=f"/bars/{bar_date['config']['meta']['config_id']}/df",
         destination=destination,
-        )
+    )
     # drop dataframes
     bar_date = bar_date.copy()  # copy to avoid mutating date
     del bar_date['bars_df']
-    del bar_date['ticks_df']
     # save full results
     data_access.presist_sd_data(
         sd_data=bar_date,
@@ -88,4 +85,4 @@ def presist_output(bar_date: dict, date: str, destination: str='remote'):
         date=date,
         prefix=f"/bars/{bar_date['config']['meta']['config_id']}/meta",
         destination=destination,
-        )
+    )

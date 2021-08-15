@@ -3,8 +3,7 @@ import json
 
 
 try:
-    with open('./tmp/secerets.json', mode='r') as fio:
-        secerets_dict = json.load(fio)
+    secerets_dict = json.load(open('./tmp/secerets.json', mode='r'))
 except FileNotFoundError:
     secerets_dict = {}
 

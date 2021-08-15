@@ -36,7 +36,7 @@ def fill_gaps_dates(bdf: pd.DataFrame, fill_col: str) -> pd.DataFrame:
         gap_fill = fill_gap(
             bar_1=bar_dates[idx-1][-1],
             bar_2=bar_dates[idx][0],
-            fill_size=max(bar_dates[idx][0]['price_vwap'] / 5000, 0.005),
+            fill_size=max(bar_dates[idx][0]['renko_size'], 0.005),
             fill_col=fill_col,
         )
         bar_dates[idx-1] = bar_dates[idx-1] + gap_fill

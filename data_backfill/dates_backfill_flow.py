@@ -8,7 +8,7 @@ from data_model.fsspec_backend import list_symbol_dates, get_and_save_date_df
 
 
 @task(max_retries=2, retry_delay=timedelta(seconds=2))
-def get_remaining_symbol_dates(start_date: str, end_date: str, symbols: list, tick_type: str) -> list:
+def get_remaining_symbol_dates(start_date: str, end_date: str, symbols: list[str], tick_type: str) -> list[tuple]:
     request_dates = get_open_market_dates(start_date, end_date)
     symbol_dates = []
     for symbol in symbols:
@@ -20,7 +20,7 @@ def get_remaining_symbol_dates(start_date: str, end_date: str, symbols: list, ti
 
 
 @task(max_retries=2, retry_delay=timedelta(seconds=2))
-def backfill_date_task(symbol_date:tuple, tick_type:str):
+def backfill_date_task(symbol_date: tuple, tick_type: str):
     df = get_and_save_date_df(
         symbol=symbol_date[0], 
         date=symbol_date[1], 
@@ -45,7 +45,7 @@ def get_flow():
     return flow
 
 
-def run_flow(symbols: list, tick_type: str, start_date: str, 
+def run_flow(symbols: list[str], tick_type: str, start_date: str, 
     # end_date: str=(datetime.utcnow() - timedelta(days=1)).isoformat().split('T')[0],  # yesterday utc
     end_date: str=(dt.today() - timedelta(days=1)).isoformat(),  # yesterday local tz
     n_workers: int=(cpu_count(logical=False)), 

@@ -1,0 +1,15 @@
+# mamba env create --force -f dev_ops/conda_mljar.yaml
+# mamba env update -n mljar -f dev_ops/conda_mljar.yaml
+name: mljar
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python = 3.9
+  - blas = *=mkl
+  - psutil
+  - mamba
+  - pandas
+  - mljar-supervised
+  - jupyterlab
+  - nodejs

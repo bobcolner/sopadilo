@@ -1,6 +1,6 @@
 # mamba env create --force -f dev_ops/conda_quant.yaml
 # mamba env update -n quant -f dev_ops/conda_quant.yaml
-name: quant
+name: ml
 channels:
   - conda-forge
   - defaults
@@ -12,9 +12,13 @@ dependencies:
   - numpy
   - scipy
   - scikit-learn
+  - scikit-learn-intelex
+  - imbalanced-learn
+  - category_encoders
   - statsmodels
   - matplotlib
   - bokeh
+  - yellowbrick
   - graphviz
   - pyarrow >= 4.0
   - pandas >= 1.2
@@ -29,7 +33,18 @@ dependencies:
   - jupyterlab_execute_time
   - prefect
   - dask
+  # - 'modin[all]'
+  # - mlflow
+  # - shap
+  # - pytorch
+  # - mljar-supervised
+  # - tpot
+  # - pycaret
+  # - xgboost
+  # - catboost
+  # - lightgbm
   - tqdm
+  # - tenacity
   - requests
   - fsspec
   - s3fs
@@ -38,6 +53,14 @@ dependencies:
   - pip:
     - pandas-bokeh
     - 'ray[default,tune,serve]'
+    # - chefboost
+    # - deep-forest
+    # - pytorch-tabnet
+    # - autoviml
+    # - 'autogluon.tabular[all,skex]'
+    # - tsai
+    # - auto-sklearn
+    # - polars
     - pandas_ta
     - fracdiff
     - pydash

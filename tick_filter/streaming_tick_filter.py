@@ -43,9 +43,7 @@ class StreamingTickFilter:
         elif self.mad_filter.status ==  'mad_outlier':
             tick['status'] = 'filtered: mad_outlier'
         else:  # 'clean' tick
-            # update jma filter
-            tick['price_jma'] = self.jma_filter.update(next_value=price)
-            # update tick rule 'side'
+            tick['price_jma'] = self.jma_filter.update(next_value=price)  # update jma filter
             tick['side'] = self.tick_rule.update(next_price=price)  # update tick rule
             # mark pre/post/open market hours
             if tick['nyc_dt'].to_pydatetime().time() < dt.time(hour=9, minute=30):

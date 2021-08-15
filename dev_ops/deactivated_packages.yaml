@@ -27,6 +27,7 @@
 - hvplot
 - yellowbrick
 - tune-sklearn
+- polars
 - robustats
 - skranger
 - ppscore

@@ -36,12 +36,14 @@ def jma_starting_state(start_value: float) -> dict:
 
 
 def jma_filter_update(value: float, state: dict, winlen: int, power: float, phase: float) -> dict:
+
     if phase < -100:
         phase_ratio = 0.5
     elif phase > 100:
         phase_ratio = 2.5
     else:
         phase_ratio = phase / (100 + 1.5)
+
     beta = 0.45 * (winlen - 1) / (0.45 * (winlen - 1) + 2)
     alpha = pow(beta, power)
     e0_next = (1 - alpha) * value + alpha * state['e0']
@@ -73,6 +75,7 @@ def jma_expanding_filter(series: pd.Series, winlen: int, power: float, phase: fl
     
     if winlen < 1:
         raise ValueError('winlen parameter must be >= 1')
+
     running_jma = jma_rolling_filter(series, winlen, power, phase)
     expanding_jma = []
     for winlen_exp in list(range(1, winlen)):
@@ -84,10 +87,11 @@ def jma_expanding_filter(series: pd.Series, winlen: int, power: float, phase: fl
     return running_jma
 
 
-def jma_filter_df(df: pd.DataFrame, col: str, winlen: int, power: float, phase: float=0, expand: bool=False) -> pd.DataFrame:
+def jma_filter_df(df: pd.DataFrame, col: str, winlen: int, power: float=1, phase: float=0, expand: bool=False) -> pd.DataFrame:
+
     if expand:
-        df.loc[:, col+'_jma'] = jma_expanding_filter(df[col], winlen, power, phase)
+        df.loc[:, col+f"_jma{winlen}"] = jma_expanding_filter(df[col], winlen, power, phase)
     else:
-        df.loc[:, col+'_jma'] = jma_rolling_filter(df[col], winlen, power, phase)
+        df.loc[:, col+f"_jma{winlen}"] = jma_rolling_filter(df[col], winlen, power, phase)
 
     return df
