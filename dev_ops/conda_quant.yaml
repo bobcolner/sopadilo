@@ -1,11 +1,11 @@
-# mamba env create --force -f dev_ops/conda_quant.yaml
+# mamba env create --force -f /Users/bobcolner/QuantClarity/sopadilo/dev_ops/conda_quant.yaml
 # mamba env update -n quant -f dev_ops/conda_quant.yaml
 name: quant
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python = 3.8
+  - python = 3.9
   - blas = *=mkl
   - psutil
   - mamba
@@ -16,13 +16,12 @@ dependencies:
   - matplotlib
   - bokeh
   - graphviz
-  - pyarrow >= 4.0
-  - pandas >= 1.2
+  - pyarrow
+  - pandas
   - pandas-profiling
-  - pandas_market_calendars
   - ipython
   - ipdb
-  - jupyterlab > 3.0
+  - jupyterlab
   - nodejs
   - jupyterlab-git
   - nbdime
@@ -37,17 +36,12 @@ dependencies:
   - pip
   - pip:
     - pandas-bokeh
-    - 'ray[default,tune,serve]'
+    - 'ray[default]'
     - pandas_ta
+    - pandas_market_calendars
     - fracdiff
     - pydash
     - pudb
     - b2
 
-# jupyter labextension install @jupyterlab/toc
-# jupyter labextension install @jupyterlab/git
-# jupyter labextension install nbdime-jupyterlab
-# jupyter labextension install jupyterlab-execute-time
-# pip install jupyterlab_execute_time [3.0+]
-# jupyter labextension install @krassowski/jupyterlab_go_to_definition
-# jupyter labextension install @jupyterlab/shortcutui
+# jupyter labextension install jupyterlab-tailwind-theme

@@ -14,7 +14,7 @@ fs_local = storage_adaptor.StorageAdaptor('local', root_path=g.DATA_LOCAL_PATH)
 fs_remote = storage_adaptor.StorageAdaptor('s3_filecache', root_path=g.DATA_S3_PATH)
 
 
-def walk_prefix(prefix: str, source: str='remote') -> list:
+def walk_prefix(prefix: str, source: str='remote') -> list[str]:
     if source == 'local':
         walks = fs_local.fs.walk(g.DATA_LOCAL_PATH+prefix)
     elif source == 'remote':

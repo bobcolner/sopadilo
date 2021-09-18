@@ -60,6 +60,7 @@ dependencies:
     # - 'autogluon.tabular[all,skex]'
     # - tsai
     # - auto-sklearn
+    - 'flaml[notebook]'
     # - polars
     - pandas_ta
     - fracdiff
