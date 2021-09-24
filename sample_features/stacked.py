@@ -14,7 +14,7 @@ def bdf_to_list(bdf: pd.DataFrame) -> list:
 
 def fill_gap(bar_1: dict, bar_2: dict, fill_size: float, fill_col: str) -> list:
     
-    num_steps = round(abs(bar_1[fill_col] - bar_2[fill_col]) / fill_size) * 2
+    num_steps = round(abs(bar_1[fill_col] - bar_2[fill_col]) / fill_size)
     fill_values = list(np.linspace(start=bar_1[fill_col], stop=bar_2[fill_col], num=num_steps))
     fill_values.append(bar_2[fill_col])  # add extra buffer bar
     fill_dict = {
@@ -34,9 +34,9 @@ def fill_gaps_dates(bdf: pd.DataFrame, fill_col: str) -> pd.DataFrame:
             continue
 
         gap_fill = fill_gap(
-            bar_1=bar_dates[idx-1][-1],
-            bar_2=bar_dates[idx][0],
-            fill_size=max(bar_dates[idx][0]['renko_size'], 0.005),
+            bar_1=bar_dates[idx-1][-1],  # previous date, last bar
+            bar_2=bar_dates[idx][0],     # current date, first bar
+            fill_size=max(abs(pd.DataFrame(bar_date)['price_return']).median()/2.0, 0.005),
             fill_col=fill_col,
         )
         bar_dates[idx-1] = bar_dates[idx-1] + gap_fill

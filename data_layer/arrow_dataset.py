@@ -38,8 +38,8 @@ def get_dataset(prefix: str, symbol: str=None, fs_type: str='local', schema=None
     return ds
 
 
-def get_market_daily_df(symbol: str, start_date: str, end_date: str, prefix: str, source: str='local') -> pd.DataFrame:
+def get_market_daily_df(prefix: str, symbol: str, start_date: str, end_date: str, source: str='local') -> pd.DataFrame:
 
-    ds = get_dataset(symbol, prefix, fs_type=source)
+    ds = get_dataset(prefix=prefix, symbol=symbol, fs_type=source)
     filter_exp = (field('date') >= start_date) & (field('date') <= end_date)
     return ds.to_table(filter=filter_exp).to_pandas()

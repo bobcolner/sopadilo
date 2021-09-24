@@ -16,7 +16,6 @@ def run(config: dict) -> list:
             except:
                 print('failed symbol list:', config['meta']['symbol'])
                 pass
-
     else:
         bar_data = run_sampler_flow(config)
 
@@ -89,5 +88,4 @@ def get_dates_from_config(config: dict) -> pd.DataFrame:
             )
         return daily_stats_df.loc[daily_stats_df.date.isin(final_remaining_dates)]
     else:
-        print("No remaining dates")
         raise Exception("No remaining dates")

@@ -2,9 +2,8 @@ import datetime as dt
 import numpy as np
 from data_layer import data_access
 
-prefix_data = '/data/trades'
 
-all_syms = data_access.list_sd_data(prefix=prefix_data)
+all_syms = data_access.list_sd_data(prefix='/data/trades')
 
 config = {
     'meta': {

@@ -21,7 +21,7 @@ def sync_symbol_date(clock_symbol: str, sync_symbol: str, date: str, config: dic
             volume=syncbar_ticks['size'],
             close_at=syncbar_ticks.index,
             )
-        syncbar.update({'symbol': sync_symbol, 'date': date})
+        syncbar.update({'symbol': sync_symbol, 'date': date, 'clock_symbol': clock_symbol})
         sync_bars.append(syncbar)
 
     print('clock:', clock_symbol, 'sync:', sync_symbol, date)  # logging

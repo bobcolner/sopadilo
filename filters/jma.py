@@ -88,10 +88,10 @@ def jma_expanding_filter(series: pd.Series, winlen: int, power: float, phase: fl
 
 
 def jma_filter_df(df: pd.DataFrame, col: str, winlen: int, power: float=1, phase: float=0, expand: bool=False) -> pd.DataFrame:
-
+    df = df.copy()
     if expand:
-        df.loc[:, col+f"_jma{winlen}"] = jma_expanding_filter(df[col], winlen, power, phase)
+        df.loc[:, f"{col}_jma{winlen}"] = jma_expanding_filter(df[col], winlen, power, phase)
     else:
-        df.loc[:, col+f"_jma{winlen}"] = jma_rolling_filter(df[col], winlen, power, phase)
+        df.loc[:, f"{col}_jma{winlen}"] = jma_rolling_filter(df[col], winlen, power, phase)
 
     return df

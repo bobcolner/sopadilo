@@ -15,8 +15,8 @@ dependencies:
   - statsmodels
   - matplotlib
   - bokeh
-  - graphviz
   - pyarrow
+  - cytoolz
   - pandas
   - pandas-profiling
   - ipython
@@ -25,8 +25,8 @@ dependencies:
   - nodejs
   - jupyterlab-git
   - nbdime
+  - mamba_gator
   - jupyterlab_execute_time
-  - prefect
   - dask
   - tqdm
   - requests
@@ -36,7 +36,10 @@ dependencies:
   - pip
   - pip:
     - pandas-bokeh
+    - graphviz
+    - finplot
     - 'ray[default]'
+    - 'prefect[viz]'
     - pandas_ta
     - pandas_market_calendars
     - fracdiff
